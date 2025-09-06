@@ -1,0 +1,11 @@
+{{ define "lamp_card_vertical" }}
+<div class="lamp-card lamp-card_vertical">
+    <a class="lamp-card__a" href="/lamp/{{ .ID }}">
+        <img class="lamp-card__image" src="{{ .ImageURL }}" alt="{{ .Title }}">
+        <div class="lamp-card__body">
+            <h2>{{ .Title }}</h2>
+            <p class="lamp-card__about">{{ .LuminousFluxLm }} лм</p>
+        </div>
+    </a>
+</div>
+{{ end }}

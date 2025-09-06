@@ -4,5 +4,7 @@
 
 @import "pages/lamps.css";
 
+@import "components/button.css";
+@import "components/lamp_card.css";
 @import "components/navbar.css";
 @import "components/text_input.css";

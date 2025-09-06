@@ -1,0 +1,43 @@
+.lamp-card {
+    flex: none;
+}
+
+.lamp-card .lamp-card__a {
+    text-decoration: none;
+}
+
+.lamp-card :is(.lamp-card__image, .lamp-card__body) {
+    border-radius: var(--border-radius);
+}
+
+.lamp-card .lamp-card__image {
+    object-fit: cover;
+}
+
+.lamp-card .lamp-card__body {
+    position: relative;
+    z-index: 1;
+}
+
+.lamp-card.lamp-card_vertical {
+    width: 18.75rem;
+}
+
+.lamp-card.lamp-card_vertical .lamp-card__about {
+    margin-top: var(--m-2);
+    color: var(--text-secondary);
+}
+
+.lamp-card.lamp-card_vertical>* {
+    width: 100%;
+}
+
+.lamp-card.lamp-card_vertical .lamp-card__body {
+    margin-top: calc(var(--border-radius) * -2);
+    padding: var(--m-3);
+    padding-top: var(--m-5);
+}
+
+.lamp-card.lamp-card_vertical:hover .lamp-card__body {
+    background-color: var(--bg-secondary);
+}

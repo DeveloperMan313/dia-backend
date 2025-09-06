@@ -1,6 +1,6 @@
 {{ define "text_input" }}
 <div class="text-input">
-    <span class="text-input__label">{{ .Label }}</span>
+    {{ if .ShowLabel }}<p class="text-input__label">{{ .Label }}</p>{{ end }}
     <input class="text-input__input" type="{{ .Type }}" name="{{ .Name }}" value="{{ .Value }}"
         placeholder="{{ .Placeholder }}">
 </div>

@@ -7,3 +7,33 @@
     gap: var(--m-5);
     align-items: center;
 }
+
+.page-lamps .page-lamps__lamp-cards {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: var(--m-3);
+    flex-wrap: wrap;
+}
+
+.page-lamps .page-lamps__search-section {
+    display: flex;
+    flex-direction: row;
+    gap: var(--m-2);
+}
+
+.page-lamps .page-lamps__search-section>.text-input {
+    width: 25rem;
+}
+
+.page-lamps .page-lamps__search-button {
+    width: var(--btn-height);
+    height: var(--btn-height);
+    padding: var(--m-2);
+    border-radius: var(--btn-height);
+}
+
+.page-lamps .page-lamps__search-icon path {
+    color: var(--bg-primary);
+}

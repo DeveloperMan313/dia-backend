@@ -19,6 +19,7 @@ func NewHandler(r *repository.Repository) *Handler {
 }
 
 type CompTextInput struct {
+	ShowLabel   bool
 	Label       string
 	Type        string
 	Name        string
@@ -46,10 +47,11 @@ func (h *Handler) GetLamps(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "lamps.html", gin.H{
 		"lamps": lamps,
 		"search": CompTextInput{
+			ShowLabel:   false,
 			Type:        "text",
-			Name:        "search",
+			Name:        "query",
 			Placeholder: "Поиск приборов",
+			Value:       searchQuery,
 		},
-		"query": searchQuery,
 	})
 }
