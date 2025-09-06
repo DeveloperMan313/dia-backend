@@ -1,0 +1,23 @@
+* {
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-size: var(--font-small);
+    color: var(--text-primary);
+}
+
+html,
+body {
+    height: 100%;
+    background-color: var(--bg-primary);
+}
+
+h1 {
+    font-size: var(--font-large);
+    font-weight: normal;
+}
+
+h2 {
+    font-size: var(--font-medium);
+    font-weight: normal;
+}

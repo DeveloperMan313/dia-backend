@@ -1,0 +1,16 @@
+{{ template "base" . }}
+
+{{ define "title" }}Приборы{{ end }}
+
+{{ define "content" }}
+<div class="page-lamps">
+    <h1>Приборы</h1>
+    {{ template "text_input" .search }}
+    {{ range .lamps }}
+    <div>
+        <h2>{{ .Title }}</h2>
+        <p>{{ .LuminousFluxLm }} лм</p>
+    </div>
+    {{ end }}
+</div>
+{{ end }}
