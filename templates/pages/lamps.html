@@ -1,8 +1,7 @@
-{{ template "base" . }}
+{{ template "base_start" . }}
 
-{{ define "title" }}Приборы{{ end }}
+{{ template "request_bin" . }}
 
-{{ define "content" }}
 <div class="page-lamps">
     <h1>Приборы</h1>
     <form class="page-lamps__search-section" action="/lamps" method="get">
@@ -19,4 +18,5 @@
         {{ end }}
     </div>
 </div>
-{{ end }}
+
+{{ template "base_end" . }}

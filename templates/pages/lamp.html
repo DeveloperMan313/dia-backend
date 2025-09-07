@@ -1,0 +1,20 @@
+{{ template "base_start" . }}
+
+<div class="page-lamp">
+    <h1>О приборе</h1>
+    <div class="page-lamp__main">
+        {{ with .lamp }}
+        <img class="page-lamp__image" src="{{ .ImageURL }}" alt="{{ .Title }}">
+        <div class="page-lamp__info">
+            <h2>{{ .Title }}</h2>
+            <div>
+                <p class="page-lamp__property"><span>Мощность</span><span>{{ .PowerW }} вт</span></p>
+                <p class="page-lamp__property"><span>Световой поток</span><span>{{ .LuminousFluxLm }} лм</span></p>
+                <p class="page-lamp__property"><span>Угол рассеивания</span><span>{{ .ScatteringAngleDeg }} °</span></p>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</div>
+
+{{ template "base_end" . }}

@@ -1,0 +1,15 @@
+{{ define "lamp_card_horizontal_view" }}
+<div class="lamp-card lamp-card_horizontal">
+    <a class="lamp-card__a" href="/lamp/{{ .Lamp.ID }}"><img class="lamp-card__image" src="{{ .Lamp.ImageURL }}"
+            alt="{{ .Lamp.Title }}"></a>
+    <div class="lamp-card__body">
+        <a class="lamp-card__a" href="/lamp/{{ .Lamp.ID }}">
+            <h2>{{ .Lamp.Title }}</h2>
+        </a>
+        <p>{{ .Lamp.LuminousFluxLm }} лм</p>
+        <p>Площадь: {{ .AreaM2 }} м²</p>
+        <p>Количество {{ .Number }}</p>
+    </div>
+
+</div>
+{{ end }}

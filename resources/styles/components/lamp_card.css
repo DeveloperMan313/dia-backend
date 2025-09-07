@@ -1,9 +1,20 @@
 .lamp-card {
     flex: none;
+    display: flex;
+}
+
+.lamp-card.lamp-card_vertical {
+    width: 18.75rem;
+    flex-direction: column;
+}
+
+.lamp-card.lamp-card_horizontal {
+    height: 10rem;
+    flex-direction: row;
 }
 
 .lamp-card .lamp-card__a {
-    text-decoration: none;
+    display: contents;
 }
 
 .lamp-card :is(.lamp-card__image, .lamp-card__body) {
@@ -12,15 +23,26 @@
 
 .lamp-card .lamp-card__image {
     object-fit: cover;
+    aspect-ratio: 1;
 }
 
 .lamp-card .lamp-card__body {
     position: relative;
+    display: flex;
     z-index: 1;
 }
 
-.lamp-card.lamp-card_vertical {
-    width: 18.75rem;
+.lamp-card.lamp-card_vertical .lamp-card__body {
+    margin-top: calc(var(--border-radius) * -2);
+    flex-direction: column;
+    gap: var(--m-2);
+}
+
+.lamp-card.lamp-card_horizontal .lamp-card__body {
+    margin-left: calc(var(--border-radius) * -2);
+    flex-direction: row;
+    align-items: center;
+    gap: var(--m-4);
 }
 
 .lamp-card.lamp-card_vertical .lamp-card__about {
@@ -28,16 +50,19 @@
     color: var(--text-secondary);
 }
 
-.lamp-card.lamp-card_vertical>* {
-    width: 100%;
-}
-
 .lamp-card.lamp-card_vertical .lamp-card__body {
-    margin-top: calc(var(--border-radius) * -2);
     padding: var(--m-3);
     padding-top: var(--m-5);
 }
 
-.lamp-card.lamp-card_vertical:hover .lamp-card__body {
+.lamp-card:is(.lamp-card_horizontal, .lamp-card_vertical:hover) .lamp-card__body {
     background-color: var(--bg-secondary);
+}
+
+.lamp-card.lamp-card_horizontal .lamp-card__body {
+    padding: 0 var(--m-4);
+}
+
+.lamp-card.lamp-card_horizontal .lamp-card__body :is(h2, p) {
+    width: 10rem;
 }

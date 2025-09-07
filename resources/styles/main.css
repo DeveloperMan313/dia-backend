@@ -2,9 +2,12 @@
 @import "vars.css";
 @import "global.css";
 
+@import "pages/calc_request.css";
+@import "pages/lamp.css";
 @import "pages/lamps.css";
 
 @import "components/button.css";
 @import "components/lamp_card.css";
 @import "components/navbar.css";
+@import "components/request_bin.css";
 @import "components/text_input.css";

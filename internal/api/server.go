@@ -11,21 +11,29 @@ import (
 func StartServer() {
 	logrus.Debug("Server started")
 
-	repo, err := repository.NewRepository()
+	lampRepo, err := repository.NewLampRepository()
 	if err != nil {
-		logrus.Error("ошибка инициализации репозитория")
+		logrus.Error("ошибка инициализации репозитория приборов")
+	}
+	calcReqRepo, err := repository.NewCalcRequestRepository()
+	if err != nil {
+		logrus.Error("ошибка инициализации репозитория запросов")
 	}
 
-	handler := handler.NewHandler(repo)
+	calcRequestHandler := handler.NewCalcRequestHandler(lampRepo, calcReqRepo)
+	lampHandler := handler.NewLampHandler(lampRepo)
+	lampsHandler := handler.NewLampsHandler(lampRepo, calcReqRepo)
 
 	r := gin.Default()
 
 	r.LoadHTMLGlob("./templates/**/*")
 	r.Static("/static", "./resources")
 
-	r.GET("/lamps", handler.GetLamps)
+	r.GET("/calc-request/:id", calcRequestHandler.GetCalcRequestByID)
+	r.GET("/lamp/:id", lampHandler.GetLampByID)
+	r.GET("/lamps", lampsHandler.GetLamps)
 
-	r.Run("0.0.0.0:8000")
+	r.Run(":8000")
 
 	logrus.Debug("Server stopped")
 }

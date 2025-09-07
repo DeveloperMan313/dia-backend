@@ -1,0 +1,33 @@
+.request-bin {
+    position: fixed;
+    bottom: 3rem;
+    left: 3rem;
+    text-decoration: none;
+    z-index: 100;
+}
+
+.request-bin .request-bin__icon {
+    width: 4rem;
+    height: 4rem;
+    overflow: visible;
+}
+
+.request-bin .request-bin__icon path {
+    color: var(--active-primary);
+}
+
+.request-bin:hover .request-bin__icon path {
+    color: var(--active-secondary);
+}
+
+.request-bin .request-bin__items {
+    position: absolute;
+    width: 2rem;
+    height: 2rem;
+    top: -1rem;
+    right: -1rem;
+    padding: calc((2rem - var(--font-small) * 1.5) / 2);
+    border-radius: 2rem;
+    background-color: var(--bg-primary);
+    text-align: center;
+}

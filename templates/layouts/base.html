@@ -1,17 +1,18 @@
-{{ define "base" }}
+{{ define "base_start" }}
 <!DOCTYPE html>
 <html lang="ru">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ block "title" . }}{{ end }}</title>
+    <title>{{ .title }}</title>
     <link rel="stylesheet" href="/static/styles/main.css">
 </head>
 
 <body>
-    {{ template "navbar.html" . }}
-    {{ block "content" . }}{{ end }}
+    {{ template "navbar" . }}
+    {{ end }}
+    {{ define "base_end" }}
 </body>
 
 </html>

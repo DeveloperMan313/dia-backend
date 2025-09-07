@@ -5,19 +5,19 @@ import (
 	"strings"
 )
 
-type Repository struct {
+type LampRepository struct {
 }
 
-func NewRepository() (*Repository, error) {
-	return &Repository{}, nil
+func NewLampRepository() (*LampRepository, error) {
+	return &LampRepository{}, nil
 }
 
 type Lamp struct {
 	ID                 int
 	Title              string
-	PowerW             int
-	LuminousFluxLm     int
-	ScatteringAngleDeg int
+	PowerW             float32
+	LuminousFluxLm     float32
+	ScatteringAngleDeg float32
 	ImageURL           string
 }
 
@@ -72,7 +72,21 @@ var lamps = []Lamp{
 	},
 }
 
-func (*Repository) GetLamps() ([]Lamp, error) {
+func (*LampRepository) GetLampByID(id int) (*Lamp, error) {
+	if len(lamps) == 0 {
+		return nil, fmt.Errorf("массив пустой")
+	}
+
+	for _, lamp := range lamps {
+		if lamp.ID == id {
+			return &lamp, nil
+		}
+	}
+
+	return nil, fmt.Errorf("не найдено")
+}
+
+func (*LampRepository) GetLamps() ([]Lamp, error) {
 	if len(lamps) == 0 {
 		return nil, fmt.Errorf("массив пустой")
 	}
@@ -80,7 +94,7 @@ func (*Repository) GetLamps() ([]Lamp, error) {
 	return lamps, nil
 }
 
-func (r *Repository) GetLampsByTitle(title string) ([]Lamp, error) {
+func (r *LampRepository) GetLampsByTitle(title string) ([]Lamp, error) {
 	lamps, err := r.GetLamps()
 	if err != nil {
 		return []Lamp{}, err
