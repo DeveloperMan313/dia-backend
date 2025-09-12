@@ -63,6 +63,12 @@
     padding: 0 var(--m-4);
 }
 
-.lamp-card.lamp-card_horizontal .lamp-card__body :is(h2, p) {
+.lamp-card .lamp-card__title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.lamp-card.lamp-card_horizontal :is(.lamp-card__title, .lamp-card__about) {
     width: 10rem;
 }
