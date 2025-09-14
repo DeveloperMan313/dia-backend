@@ -2,7 +2,6 @@ package repository
 
 import (
 	"dia-backend/internal/app/ds"
-	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -17,97 +16,26 @@ func NewCalcRequestRepository(db *gorm.DB) *CalcRequestRepository {
 	}
 }
 
-type CalcRequestViewEntry struct {
-	Lamp   ds.Lamp
-	AreaM2 float64
-	Number uint64
+func (r *CalcRequestRepository) GetCalcRequestEntryCntByID(id uint64) (int64, error) {
+	var count int64
+	err := r.db.Model(&ds.CalcRequest{}).Where("id = ?", id).Joins("CalcRequestToLamp").Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
-type CalcRequestView struct {
-	CalcRequest ds.CalcRequest
-	Entries     []CalcRequestViewEntry
-}
-
-var calcRequests = []ds.CalcRequest{
-	{
-		ID:             1,
-		MaxTotalPowerW: 200,
-		TotalPowerW:    158,
-	},
-}
-
-var calcRequestToLamps = []ds.CalcRequestToLamp{
-	{
-		RequestID: 1,
-		LampID:    2,
-		AreaM2:    40,
-		Number:    1,
-	},
-	{
-		RequestID: 1,
-		LampID:    3,
-		AreaM2:    25,
-		Number:    10,
-	},
-}
-
-func (*CalcRequestRepository) GetCalcRequestEntryCntByID(id uint64) (uint64, error) {
-	if len(calcRequests) == 0 {
-		return 0, fmt.Errorf("массив пустой")
+func (r *CalcRequestRepository) GetCalcRequestByID(id uint64, lampRepo *LampRepository) (*ds.CalcRequest, error) {
+	var calcRequest ds.CalcRequest
+	err := r.db.
+		Preload("CalcRequestToLamp").
+		Preload("CalcRequestToLamp.Lamp").
+		Where("id = ?", id).
+		Take(&calcRequest).Error
+	if err != nil {
+		return nil, err
 	}
 
-	var calcRequest *ds.CalcRequest = nil
-	for _, req := range calcRequests {
-		if req.ID == id {
-			calcRequest = &req
-		}
-	}
-	if calcRequest == nil {
-		return 0, fmt.Errorf("не найдено")
-	}
-
-	var calcRequestEntryCnt uint64 = 0
-	for _, reqToLamp := range calcRequestToLamps {
-		if reqToLamp.RequestID == calcRequest.ID {
-			calcRequestEntryCnt++
-		}
-	}
-
-	return calcRequestEntryCnt, nil
-}
-
-func (*CalcRequestRepository) GetCalcRequestViewByID(id uint64, lampRepo *LampRepository) (*CalcRequestView, error) {
-	if len(calcRequests) == 0 {
-		return nil, fmt.Errorf("массив пустой")
-	}
-
-	var calcRequest *ds.CalcRequest = nil
-	for _, req := range calcRequests {
-		if req.ID == id {
-			calcRequest = &req
-		}
-	}
-	if calcRequest == nil {
-		return nil, fmt.Errorf("не найдено")
-	}
-
-	calcRequestView := CalcRequestView{
-		CalcRequest: *calcRequest,
-	}
-
-	for _, reqToLamp := range calcRequestToLamps {
-		if reqToLamp.RequestID == calcRequest.ID {
-			lamp, err := lampRepo.GetLampByID(reqToLamp.LampID)
-			if err != nil {
-				return nil, fmt.Errorf("не найдено")
-			}
-			calcRequestView.Entries = append(calcRequestView.Entries, CalcRequestViewEntry{
-				Lamp:   *lamp,
-				AreaM2: reqToLamp.AreaM2,
-				Number: reqToLamp.Number,
-			})
-		}
-	}
-
-	return &calcRequestView, nil
+	return &calcRequest, nil
 }

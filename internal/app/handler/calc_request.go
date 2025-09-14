@@ -32,7 +32,7 @@ func (h *CalcRequestHandler) GetCalcRequestByID(ctx *gin.Context) {
 		return
 	}
 
-	calcReqView, err := h.repo.CalcRequest.GetCalcRequestViewByID(reqID, h.repo.Lamp)
+	calcRequest, err := h.repo.CalcRequest.GetCalcRequestByID(reqID, h.repo.Lamp)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusNotFound)
@@ -40,7 +40,7 @@ func (h *CalcRequestHandler) GetCalcRequestByID(ctx *gin.Context) {
 	}
 
 	ctx.HTML(http.StatusOK, "calc_request.html", gin.H{
-		"title": "Просмотр заявки",
-		"view":  &calcReqView,
+		"title":       "Просмотр заявки",
+		"calcRequest": &calcRequest,
 	})
 }

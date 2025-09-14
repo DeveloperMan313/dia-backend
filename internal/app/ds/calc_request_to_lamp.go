@@ -1,10 +1,10 @@
 package ds
 
 type CalcRequestToLamp struct {
-	RequestID   uint64
-	CalcRequest CalcRequest `gorm:"foreignKey:RequestID"`
-	LampID      uint64
-	Lamp        Lamp    `gorm:"foreignKey:LampID"`
-	AreaM2      float64 `gorm:"type:double precision;not null"`
-	Number      uint64  `gorm:"type:uint"`
+	RequestID   uint64      `gorm:"primaryKey"`
+	LampID      uint64      `gorm:"primaryKey"`
+	CalcRequest CalcRequest `gorm:"foreignKey:RequestID;references:ID"`
+	Lamp        Lamp        `gorm:"foreignKey:LampID;references:ID"`
+	AreaM2      float64     `gorm:"type:double precision;not null"`
+	Number      uint64      `gorm:"type:uint"`
 }

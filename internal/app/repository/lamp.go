@@ -2,8 +2,6 @@ package repository
 
 import (
 	"dia-backend/internal/app/ds"
-	"fmt"
-	"strings"
 
 	"gorm.io/gorm"
 )
@@ -18,55 +16,32 @@ func NewLampRepository(db *gorm.DB) *LampRepository {
 	}
 }
 
-var lamps = []ds.Lamp{
-	{ID: 1, Title: "Умная потолочная люстра с перламутром", PowerW: 40, LuminousFluxLm: 3200, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/1.jpg"},
-	{ID: 2, Title: "Slim Magnetic Трековый светильник 26W 4000K Most чёрный", PowerW: 26, LuminousFluxLm: 2210, ScatteringAngleDeg: 60, ImageURL: "http://localhost:9000/lamp-images/2.jpg"},
-	{ID: 3, Title: "Светильник потолочный светодиодный Trio 8W 3000K белый", PowerW: 8, LuminousFluxLm: 680, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/3.jpg"},
-	{ID: 4, Title: "Потолочный светильник", PowerW: 40, LuminousFluxLm: 3200, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/4.jpg"},
-	{ID: 5, Title: "Подвесной светильник со стеклянными плафонами", PowerW: 40, LuminousFluxLm: 3200, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/5.jpg"},
-	{ID: 6, Title: "Esthetic Magnetic Трековый светильник 3W 3000K (чёрный)", PowerW: 3, LuminousFluxLm: 255, ScatteringAngleDeg: 60, ImageURL: "http://localhost:9000/lamp-images/6.jpg"},
-	{ID: 7, Title: "Подвесной светильник", PowerW: 40, LuminousFluxLm: 3200, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/7.jpg"},
-	{ID: 8, Title: "Трековый светильник 100W 4200K Full Light N05 Slim Magnetic", PowerW: 100, LuminousFluxLm: 8500, ScatteringAngleDeg: 60, ImageURL: "http://localhost:9000/lamp-images/8.jpg"},
-	{ID: 9, Title: "Светильник встраиваемый светодиодный Forte 15W 4000K титан", PowerW: 15, LuminousFluxLm: 1275, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/9.jpg"},
-	{ID: 10, Title: "Подвесной светильник со стеклянными плафонами", PowerW: 40, LuminousFluxLm: 3200, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/10.jpg"},
-	{ID: 11, Title: "Светильник потолочный светодиодный Tend 9W 4000K черный", PowerW: 9, LuminousFluxLm: 765, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/11.jpg"},
-	{ID: 12, Title: "Подвесной светодиодный светильник", PowerW: 40, LuminousFluxLm: 3200, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/12.jpg"},
-}
-
-func (*LampRepository) GetLampByID(id uint64) (*ds.Lamp, error) {
-	if len(lamps) == 0 {
-		return nil, fmt.Errorf("массив пустой")
+func (r *LampRepository) GetLampByID(id uint64) (*ds.Lamp, error) {
+	var lamp ds.Lamp
+	err := r.db.Where("id = ?", id).Take(&lamp).Error
+	if err != nil {
+		return nil, err
 	}
 
-	for _, lamp := range lamps {
-		if lamp.ID == id {
-			return &lamp, nil
-		}
-	}
-
-	return nil, fmt.Errorf("не найдено")
+	return &lamp, nil
 }
 
-func (*LampRepository) GetLamps() ([]ds.Lamp, error) {
-	if len(lamps) == 0 {
-		return nil, fmt.Errorf("массив пустой")
+func (r *LampRepository) GetLamps() ([]ds.Lamp, error) {
+	var lamps []ds.Lamp
+	err := r.db.Find(&lamps).Error
+	if err != nil {
+		return nil, err
 	}
 
 	return lamps, nil
 }
 
 func (r *LampRepository) GetLampsByTitle(title string) ([]ds.Lamp, error) {
-	lamps, err := r.GetLamps()
+	var lamps []ds.Lamp
+	err := r.db.Where("title ILIKE ?", "%"+title+"%").Find(&lamps).Error
 	if err != nil {
-		return []ds.Lamp{}, err
+		return nil, err
 	}
 
-	var result []ds.Lamp
-	for _, lamp := range lamps {
-		if strings.Contains(strings.ToLower(lamp.Title), strings.ToLower(title)) {
-			result = append(result, lamp)
-		}
-	}
-
-	return result, nil
+	return lamps, nil
 }
