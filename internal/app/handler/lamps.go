@@ -53,7 +53,7 @@ func (h *LampsHandler) GetLamps(ctx *gin.Context) {
 		}
 	}
 
-	calcRequestID := 1
+	var calcRequestID uint64 = 1
 	calcRequestEntryCnt, err := h.repo.CalcRequest.GetCalcRequestEntryCntByID(calcRequestID)
 	if err != nil {
 		logrus.Error(err)

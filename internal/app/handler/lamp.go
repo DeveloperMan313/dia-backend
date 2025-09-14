@@ -25,7 +25,7 @@ func (h *LampHandler) Register(router *gin.Engine) {
 
 func (h *LampHandler) GetLampByID(ctx *gin.Context) {
 	lampIDStr := ctx.Param("id")
-	lampID, err := strconv.Atoi(lampIDStr)
+	lampID, err := strconv.ParseUint(lampIDStr, 10, 64)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusBadRequest)

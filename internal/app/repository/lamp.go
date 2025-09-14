@@ -33,7 +33,7 @@ var lamps = []ds.Lamp{
 	{ID: 12, Title: "Подвесной светодиодный светильник", PowerW: 40, LuminousFluxLm: 3200, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/12.jpg"},
 }
 
-func (*LampRepository) GetLampByID(id int) (*ds.Lamp, error) {
+func (*LampRepository) GetLampByID(id uint64) (*ds.Lamp, error) {
 	if len(lamps) == 0 {
 		return nil, fmt.Errorf("массив пустой")
 	}

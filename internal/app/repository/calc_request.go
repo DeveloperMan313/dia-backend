@@ -19,8 +19,8 @@ func NewCalcRequestRepository(db *gorm.DB) *CalcRequestRepository {
 
 type CalcRequestViewEntry struct {
 	Lamp   ds.Lamp
-	AreaM2 float32
-	Number int
+	AreaM2 float64
+	Number uint64
 }
 
 type CalcRequestView struct {
@@ -51,7 +51,7 @@ var calcRequestToLamps = []ds.CalcRequestToLamp{
 	},
 }
 
-func (*CalcRequestRepository) GetCalcRequestEntryCntByID(id int) (int, error) {
+func (*CalcRequestRepository) GetCalcRequestEntryCntByID(id uint64) (uint64, error) {
 	if len(calcRequests) == 0 {
 		return 0, fmt.Errorf("массив пустой")
 	}
@@ -66,7 +66,7 @@ func (*CalcRequestRepository) GetCalcRequestEntryCntByID(id int) (int, error) {
 		return 0, fmt.Errorf("не найдено")
 	}
 
-	var calcRequestEntryCnt int = 0
+	var calcRequestEntryCnt uint64 = 0
 	for _, reqToLamp := range calcRequestToLamps {
 		if reqToLamp.RequestID == calcRequest.ID {
 			calcRequestEntryCnt++
@@ -76,7 +76,7 @@ func (*CalcRequestRepository) GetCalcRequestEntryCntByID(id int) (int, error) {
 	return calcRequestEntryCnt, nil
 }
 
-func (*CalcRequestRepository) GetCalcRequestViewByID(id int, lampRepo *LampRepository) (*CalcRequestView, error) {
+func (*CalcRequestRepository) GetCalcRequestViewByID(id uint64, lampRepo *LampRepository) (*CalcRequestView, error) {
 	if len(calcRequests) == 0 {
 		return nil, fmt.Errorf("массив пустой")
 	}

@@ -24,6 +24,7 @@ func main() {
 		&ds.Lamp{},
 		&ds.CalcRequest{},
 		&ds.CalcRequestToLamp{},
+		&ds.User{},
 	)
 	if err != nil {
 		panic("cant migrate db")

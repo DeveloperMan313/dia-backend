@@ -67,12 +67,16 @@ services:
 
   postgres:
     image: postgres:latest
+    env_file: .env
     environment:
       - POSTGRES_PASSWORD=${DB_POSTGRES_PASSWORD}
     ports:
       - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init.sh:/init.sh:ro
+      - ./init-db-template.sql:/init-db-template.sql:ro
+    command: "/init.sh"
 
   adminer:
     image: adminer:latest

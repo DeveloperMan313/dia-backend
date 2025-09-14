@@ -25,7 +25,7 @@ func (h *CalcRequestHandler) Register(router *gin.Engine) {
 
 func (h *CalcRequestHandler) GetCalcRequestByID(ctx *gin.Context) {
 	lampIDStr := ctx.Param("id")
-	reqID, err := strconv.Atoi(lampIDStr)
+	reqID, err := strconv.ParseUint(lampIDStr, 10, 64)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusBadRequest)
