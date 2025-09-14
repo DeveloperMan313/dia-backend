@@ -10,15 +10,17 @@ import (
 )
 
 type CalcRequestHandler struct {
-	LampRepository        *repository.LampRepository
-	CalcRequestRepository *repository.CalcRequestRepository
+	repo *repository.Repository
 }
 
-func NewCalcRequestHandler(lampRepo *repository.LampRepository, calcReqRepo *repository.CalcRequestRepository) *CalcRequestHandler {
+func NewCalcRequestHandler(repository *repository.Repository) *CalcRequestHandler {
 	return &CalcRequestHandler{
-		LampRepository:        lampRepo,
-		CalcRequestRepository: calcReqRepo,
+		repo: repository,
 	}
+}
+
+func (h *CalcRequestHandler) Register(router *gin.Engine) {
+	router.GET("/calc-request/:id", h.GetCalcRequestByID)
 }
 
 func (h *CalcRequestHandler) GetCalcRequestByID(ctx *gin.Context) {
@@ -30,7 +32,7 @@ func (h *CalcRequestHandler) GetCalcRequestByID(ctx *gin.Context) {
 		return
 	}
 
-	calcReqView, err := h.CalcRequestRepository.GetCalcRequestViewByID(reqID, h.LampRepository)
+	calcReqView, err := h.repo.CalcRequest.GetCalcRequestViewByID(reqID, h.repo.Lamp)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusNotFound)

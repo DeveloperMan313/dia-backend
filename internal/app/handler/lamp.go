@@ -10,13 +10,17 @@ import (
 )
 
 type LampHandler struct {
-	LampRepository *repository.LampRepository
+	repo *repository.Repository
 }
 
-func NewLampHandler(lampRepo *repository.LampRepository) *LampHandler {
+func NewLampHandler(repository *repository.Repository) *LampHandler {
 	return &LampHandler{
-		LampRepository: lampRepo,
+		repo: repository,
 	}
+}
+
+func (h *LampHandler) Register(router *gin.Engine) {
+	router.GET("/lamp/:id", h.GetLampByID)
 }
 
 func (h *LampHandler) GetLampByID(ctx *gin.Context) {
@@ -28,7 +32,7 @@ func (h *LampHandler) GetLampByID(ctx *gin.Context) {
 		return
 	}
 
-	lamp, err := h.LampRepository.GetLampByID(lampID)
+	lamp, err := h.repo.Lamp.GetLampByID(lampID)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusNotFound)

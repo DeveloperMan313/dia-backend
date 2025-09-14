@@ -1,27 +1,24 @@
 package repository
 
 import (
+	"dia-backend/internal/app/ds"
 	"fmt"
 	"strings"
+
+	"gorm.io/gorm"
 )
 
 type LampRepository struct {
+	db *gorm.DB
 }
 
-func NewLampRepository() (*LampRepository, error) {
-	return &LampRepository{}, nil
+func NewLampRepository(db *gorm.DB) *LampRepository {
+	return &LampRepository{
+		db: db,
+	}
 }
 
-type Lamp struct {
-	ID                 int
-	Title              string
-	PowerW             float32
-	LuminousFluxLm     float32
-	ScatteringAngleDeg float32
-	ImageURL           string
-}
-
-var lamps = []Lamp{
+var lamps = []ds.Lamp{
 	{ID: 1, Title: "Умная потолочная люстра с перламутром", PowerW: 40, LuminousFluxLm: 3200, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/1.jpg"},
 	{ID: 2, Title: "Slim Magnetic Трековый светильник 26W 4000K Most чёрный", PowerW: 26, LuminousFluxLm: 2210, ScatteringAngleDeg: 60, ImageURL: "http://localhost:9000/lamp-images/2.jpg"},
 	{ID: 3, Title: "Светильник потолочный светодиодный Trio 8W 3000K белый", PowerW: 8, LuminousFluxLm: 680, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/3.jpg"},
@@ -36,7 +33,7 @@ var lamps = []Lamp{
 	{ID: 12, Title: "Подвесной светодиодный светильник", PowerW: 40, LuminousFluxLm: 3200, ScatteringAngleDeg: 120, ImageURL: "http://localhost:9000/lamp-images/12.jpg"},
 }
 
-func (*LampRepository) GetLampByID(id int) (*Lamp, error) {
+func (*LampRepository) GetLampByID(id int) (*ds.Lamp, error) {
 	if len(lamps) == 0 {
 		return nil, fmt.Errorf("массив пустой")
 	}
@@ -50,7 +47,7 @@ func (*LampRepository) GetLampByID(id int) (*Lamp, error) {
 	return nil, fmt.Errorf("не найдено")
 }
 
-func (*LampRepository) GetLamps() ([]Lamp, error) {
+func (*LampRepository) GetLamps() ([]ds.Lamp, error) {
 	if len(lamps) == 0 {
 		return nil, fmt.Errorf("массив пустой")
 	}
@@ -58,13 +55,13 @@ func (*LampRepository) GetLamps() ([]Lamp, error) {
 	return lamps, nil
 }
 
-func (r *LampRepository) GetLampsByTitle(title string) ([]Lamp, error) {
+func (r *LampRepository) GetLampsByTitle(title string) ([]ds.Lamp, error) {
 	lamps, err := r.GetLamps()
 	if err != nil {
-		return []Lamp{}, err
+		return []ds.Lamp{}, err
 	}
 
-	var result []Lamp
+	var result []ds.Lamp
 	for _, lamp := range lamps {
 		if strings.Contains(strings.ToLower(lamp.Title), strings.ToLower(title)) {
 			result = append(result, lamp)

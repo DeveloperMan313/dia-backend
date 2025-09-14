@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"dia-backend/internal/app/ds"
 	"dia-backend/internal/app/repository"
 	"net/http"
 
@@ -9,15 +10,17 @@ import (
 )
 
 type LampsHandler struct {
-	LampRepository        *repository.LampRepository
-	CalcRequestRepository *repository.CalcRequestRepository
+	repo *repository.Repository
 }
 
-func NewLampsHandler(lampRepo *repository.LampRepository, calcReqRepo *repository.CalcRequestRepository) *LampsHandler {
+func NewLampsHandler(repository *repository.Repository) *LampsHandler {
 	return &LampsHandler{
-		LampRepository:        lampRepo,
-		CalcRequestRepository: calcReqRepo,
+		repo: repository,
 	}
+}
+
+func (h *LampsHandler) Register(router *gin.Engine) {
+	router.GET("/lamps", h.GetLamps)
 }
 
 type CompTextInput struct {
@@ -30,19 +33,19 @@ type CompTextInput struct {
 }
 
 func (h *LampsHandler) GetLamps(ctx *gin.Context) {
-	var lamps []repository.Lamp
+	var lamps []ds.Lamp
 	var err error
 
 	searchQuery := ctx.Query("query")
 	if searchQuery == "" {
-		lamps, err = h.LampRepository.GetLamps()
+		lamps, err = h.repo.Lamp.GetLamps()
 		if err != nil {
 			logrus.Error(err)
 			ctx.Status(http.StatusNotFound)
 			return
 		}
 	} else {
-		lamps, err = h.LampRepository.GetLampsByTitle(searchQuery)
+		lamps, err = h.repo.Lamp.GetLampsByTitle(searchQuery)
 		if err != nil {
 			logrus.Error(err)
 			ctx.Status(http.StatusNotFound)
@@ -51,7 +54,7 @@ func (h *LampsHandler) GetLamps(ctx *gin.Context) {
 	}
 
 	calcRequestID := 1
-	calcRequestEntryCnt, err := h.CalcRequestRepository.GetCalcRequestEntryCntByID(calcRequestID)
+	calcRequestEntryCnt, err := h.repo.CalcRequest.GetCalcRequestEntryCntByID(calcRequestID)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusNotFound)

@@ -1,41 +1,34 @@
 package repository
 
 import (
+	"dia-backend/internal/app/ds"
 	"fmt"
+
+	"gorm.io/gorm"
 )
 
 type CalcRequestRepository struct {
+	db *gorm.DB
 }
 
-func NewCalcRequestRepository() (*CalcRequestRepository, error) {
-	return &CalcRequestRepository{}, nil
-}
-
-type CalcRequest struct {
-	ID             int
-	MaxTotalPowerW float32
-	TotalPowerW    float32
-}
-
-type CalcRequestToLamp struct {
-	RequestID int
-	LampID    int
-	AreaM2    float32
-	Number    int
+func NewCalcRequestRepository(db *gorm.DB) *CalcRequestRepository {
+	return &CalcRequestRepository{
+		db: db,
+	}
 }
 
 type CalcRequestViewEntry struct {
-	Lamp   Lamp
+	Lamp   ds.Lamp
 	AreaM2 float32
 	Number int
 }
 
 type CalcRequestView struct {
-	CalcRequest CalcRequest
+	CalcRequest ds.CalcRequest
 	Entries     []CalcRequestViewEntry
 }
 
-var calcRequests = []CalcRequest{
+var calcRequests = []ds.CalcRequest{
 	{
 		ID:             1,
 		MaxTotalPowerW: 200,
@@ -43,7 +36,7 @@ var calcRequests = []CalcRequest{
 	},
 }
 
-var calcRequestToLamps = []CalcRequestToLamp{
+var calcRequestToLamps = []ds.CalcRequestToLamp{
 	{
 		RequestID: 1,
 		LampID:    2,
@@ -63,7 +56,7 @@ func (*CalcRequestRepository) GetCalcRequestEntryCntByID(id int) (int, error) {
 		return 0, fmt.Errorf("массив пустой")
 	}
 
-	var calcRequest *CalcRequest = nil
+	var calcRequest *ds.CalcRequest = nil
 	for _, req := range calcRequests {
 		if req.ID == id {
 			calcRequest = &req
@@ -88,7 +81,7 @@ func (*CalcRequestRepository) GetCalcRequestViewByID(id int, lampRepo *LampRepos
 		return nil, fmt.Errorf("массив пустой")
 	}
 
-	var calcRequest *CalcRequest = nil
+	var calcRequest *ds.CalcRequest = nil
 	for _, req := range calcRequests {
 		if req.ID == id {
 			calcRequest = &req
