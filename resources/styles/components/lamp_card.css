@@ -5,6 +5,7 @@
 
 .lamp-card.lamp-card_vertical {
     width: 18.75rem;
+    height: 25rem;
     flex-direction: column;
 }
 
@@ -13,7 +14,7 @@
     flex-direction: row;
 }
 
-.lamp-card .lamp-card__a {
+.lamp-card :is(.lamp-card__a, .lamp-card__add-form) {
     display: contents;
 }
 
@@ -46,6 +47,7 @@
 }
 
 .lamp-card.lamp-card_vertical .lamp-card__about {
+    width: fit-content;
     margin-top: var(--m-2);
     color: var(--text-secondary);
 }
@@ -53,6 +55,14 @@
 .lamp-card.lamp-card_vertical .lamp-card__body {
     padding: var(--m-3);
     padding-top: var(--m-5);
+}
+
+.lamp-card.lamp-card_vertical .lamp-card__add-btn {
+    display: none;
+}
+
+.lamp-card.lamp-card_vertical:hover .lamp-card__add-btn {
+    display: block;
 }
 
 .lamp-card:is(.lamp-card_horizontal, .lamp-card_vertical:hover) .lamp-card__body {

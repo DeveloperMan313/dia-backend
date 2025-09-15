@@ -6,6 +6,11 @@
     z-index: 100;
 }
 
+.request-bin.request-bin_disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
 .request-bin .request-bin__icon {
     width: 4rem;
     height: 4rem;

@@ -8,6 +8,12 @@
         {{ template "lamp_card_horizontal_view" . }}
         {{ end }}
     </div>
+    <div class="page-request__actions-section">
+        <form class="page-request__action-form" method="post">
+            <input type="hidden" name="request-id" value="{{ .calcRequest.ID }}">
+            <button class="button button_neutral" type="submit">Удалить заявку</button>
+        </form>
+    </div>
 </div>
 
 {{ template "base_end" . }}

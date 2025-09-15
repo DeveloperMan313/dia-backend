@@ -4,6 +4,7 @@ import (
 	"dia-backend/internal/app/ds"
 	"dia-backend/internal/app/repository"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -21,6 +22,7 @@ func NewLampsHandler(repository *repository.Repository) *LampsHandler {
 
 func (h *LampsHandler) Register(router *gin.Engine) {
 	router.GET("/lamps", h.GetLamps)
+	router.POST("/lamps", h.AddLampToRequest)
 }
 
 type CompTextInput struct {
@@ -53,8 +55,7 @@ func (h *LampsHandler) GetLamps(ctx *gin.Context) {
 		}
 	}
 
-	var calcRequestID uint64 = 1
-	calcRequestEntryCnt, err := h.repo.CalcRequest.GetCalcRequestEntryCntByID(calcRequestID)
+	calcRequestID, calcRequestEntryCnt, err := h.repo.CalcRequest.GetCalcRequestIDEntryCntByUserID(1)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusNotFound)
@@ -74,4 +75,23 @@ func (h *LampsHandler) GetLamps(ctx *gin.Context) {
 		"calcRequestID":       calcRequestID,
 		"calcRequestEntryCnt": calcRequestEntryCnt,
 	})
+}
+
+func (h *LampsHandler) AddLampToRequest(ctx *gin.Context) {
+	lampIDStr := ctx.PostForm("lamp-id")
+	lampID, err := strconv.ParseUint(lampIDStr, 10, 64)
+	if err != nil {
+		logrus.Error(err)
+		ctx.Status(http.StatusBadRequest)
+		return
+	}
+
+	err = h.repo.CalcRequest.AddLampToCalcRequest(lampID, 1)
+	if err != nil {
+		logrus.Error(err)
+		ctx.Status(http.StatusBadRequest)
+		return
+	}
+
+	h.GetLamps(ctx)
 }

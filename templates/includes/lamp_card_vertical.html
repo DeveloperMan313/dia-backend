@@ -2,10 +2,16 @@
 <div class="lamp-card lamp-card_vertical">
     <a class="lamp-card__a" href="/lamp/{{ .ID }}">
         <img class="lamp-card__image" src="{{ .ImageURL }}" alt="{{ .Title }}">
-        <div class="lamp-card__body">
-            <h2 class="lamp-card__title">{{ .Title }}</h2>
-            <p class="lamp-card__about">{{ .LuminousFluxLm }} лм</p>
-        </div>
     </a>
+    <div class="lamp-card__body">
+        <a class="lamp-card__a" href="/lamp/{{ .ID }}">
+            <h2 class="lamp-card__title">{{ .Title }}</h2>
+        </a>
+        <p class="lamp-card__about">{{ .LuminousFluxLm }} лм</p>
+        <form class="lamp-card__add-form" method="post">
+            <input type="hidden" name="lamp-id" value="{{ .ID }}">
+            <button class="button button_primary lamp-card__add-btn" type="submit">В заявку</button>
+        </form>
+    </div>
 </div>
 {{ end }}
