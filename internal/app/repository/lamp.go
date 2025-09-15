@@ -18,7 +18,7 @@ func NewLampRepository(db *gorm.DB) *LampRepository {
 
 func (r *LampRepository) GetLampByID(id uint64) (*ds.Lamp, error) {
 	var lamp ds.Lamp
-	err := r.db.First(&lamp, id).Error
+	err := r.db.Where("is_deleted = false").First(&lamp, id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (r *LampRepository) GetLampByID(id uint64) (*ds.Lamp, error) {
 
 func (r *LampRepository) GetLamps() ([]ds.Lamp, error) {
 	var lamps []ds.Lamp
-	err := r.db.Find(&lamps).Error
+	err := r.db.Where("is_deleted = false").Find(&lamps).Error
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (r *LampRepository) GetLamps() ([]ds.Lamp, error) {
 func (r *LampRepository) GetLampsByTitle(title string) ([]ds.Lamp, error) {
 	var lamps []ds.Lamp
 	err := r.db.
-		Where("title ILIKE ?", "%"+title+"%").
+		Where("is_deleted = false AND title ILIKE ?", "%"+title+"%").
 		Find(&lamps).Error
 	if err != nil {
 		return nil, err
