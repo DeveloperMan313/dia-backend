@@ -8,12 +8,28 @@
 }
 
 .page-lamps .page-lamps__lamp-cards {
+    --cards-in-row: 6;
+    --cards-gap: var(--m-3);
+
     width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    gap: var(--m-3);
-    flex-wrap: wrap;
+    padding: 0 var(--cards-gap);
+    display: grid;
+    grid-template-columns: repeat(var(--cards-in-row), 1fr);
+    gap: var(--cards-gap);
+}
+
+.page-lamps .page-lamps__lamp-cards .lamp-card {
+    --width: calc(
+        (100vw - (var(--cards-in-row) + 1) * var(--cards-gap)) /
+            var(--cards-in-row)
+    );
+
+    width: var(--width);
+    height: calc(var(--width) + 5rem);
+}
+
+.page-lamps .page-lamps__lamp-cards .lamp-card:nth-of-type(6n) {
+    margin-right: 0;
 }
 
 .page-lamps .page-lamps__search-section {
@@ -22,7 +38,7 @@
     gap: var(--m-2);
 }
 
-.page-lamps .page-lamps__search-section>.text-input {
+.page-lamps .page-lamps__search-section > .text-input {
     width: 25rem;
 }
 
