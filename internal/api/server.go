@@ -15,21 +15,21 @@ func StartServer() {
 	if err != nil {
 		logrus.Error("ошибка инициализации репозитория приборов")
 	}
-	calcReqRepo, err := repository.NewCalcRequestRepository()
+	lightReqRepo, err := repository.NewLightRequestRepository()
 	if err != nil {
 		logrus.Error("ошибка инициализации репозитория запросов")
 	}
 
-	calcRequestHandler := handler.NewCalcRequestHandler(lampRepo, calcReqRepo)
+	lightRequestHandler := handler.NewLightRequestHandler(lampRepo, lightReqRepo)
 	lampHandler := handler.NewLampHandler(lampRepo)
-	lampsHandler := handler.NewLampsHandler(lampRepo, calcReqRepo)
+	lampsHandler := handler.NewLampsHandler(lampRepo, lightReqRepo)
 
 	r := gin.Default()
 
 	r.LoadHTMLGlob("./templates/**/*")
 	r.Static("/static", "./resources")
 
-	r.GET("/calc-request/:id", calcRequestHandler.GetCalcRequestByID)
+	r.GET("/light-request/:id", lightRequestHandler.GetLightRequestByID)
 	r.GET("/lamp/:id", lampHandler.GetLampByID)
 	r.GET("/lamps", lampsHandler.GetLamps)
 

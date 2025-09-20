@@ -9,14 +9,14 @@ import (
 )
 
 type LampsHandler struct {
-	LampRepository        *repository.LampRepository
-	CalcRequestRepository *repository.CalcRequestRepository
+	LampRepository         *repository.LampRepository
+	LightRequestRepository *repository.LightRequestRepository
 }
 
-func NewLampsHandler(lampRepo *repository.LampRepository, calcReqRepo *repository.CalcRequestRepository) *LampsHandler {
+func NewLampsHandler(lampRepo *repository.LampRepository, lightReqRepo *repository.LightRequestRepository) *LampsHandler {
 	return &LampsHandler{
-		LampRepository:        lampRepo,
-		CalcRequestRepository: calcReqRepo,
+		LampRepository:         lampRepo,
+		LightRequestRepository: lightReqRepo,
 	}
 }
 
@@ -33,7 +33,7 @@ func (h *LampsHandler) GetLamps(ctx *gin.Context) {
 	var lamps []repository.Lamp
 	var err error
 
-	searchQuery := ctx.Query("query")
+	searchQuery := ctx.Query("title")
 	if searchQuery == "" {
 		lamps, err = h.LampRepository.GetLamps()
 		if err != nil {
@@ -50,8 +50,8 @@ func (h *LampsHandler) GetLamps(ctx *gin.Context) {
 		}
 	}
 
-	calcRequestID := 1
-	calcRequestEntryCnt, err := h.CalcRequestRepository.GetCalcRequestEntryCntByID(calcRequestID)
+	lightRequestID := 1
+	lightRequestEntryCnt, err := h.LightRequestRepository.GetLightRequestEntryCntByID(lightRequestID)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusNotFound)
@@ -64,11 +64,11 @@ func (h *LampsHandler) GetLamps(ctx *gin.Context) {
 		"search": CompTextInput{
 			ShowLabel:   false,
 			Type:        "text",
-			Name:        "query",
+			Name:        "title",
 			Placeholder: "Поиск приборов",
 			Value:       searchQuery,
 		},
-		"calcRequestID":       calcRequestID,
-		"calcRequestEntryCnt": calcRequestEntryCnt,
+		"lightRequestID":       lightRequestID,
+		"lightRequestEntryCnt": lightRequestEntryCnt,
 	})
 }
