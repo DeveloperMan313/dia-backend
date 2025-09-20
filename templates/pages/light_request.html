@@ -1,0 +1,24 @@
+{{ template "base_start" . }}
+
+<div class="page-request">
+    <h1>Просмотр заявки</h1>
+    <h2>Суммарная мощность: {{ .lightRequest.TotalPowerW }} вт</h2>
+    <div class="page-request__cards">
+        {{ range .lightRequest.LightRequestToLamp }} {{ template
+        "lamp_card_horizontal_view" . }} {{ end }}
+    </div>
+    <div class="page-request__actions-section">
+        <form class="page-request__action-form" method="post">
+            <input
+                type="hidden"
+                name="request-id"
+                value="{{ .lightRequest.ID }}"
+            />
+            <button class="button button_neutral" type="submit">
+                Удалить заявку
+            </button>
+        </form>
+    </div>
+</div>
+
+{{ template "base_end" . }}

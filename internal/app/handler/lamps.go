@@ -38,7 +38,7 @@ func (h *LampsHandler) GetLamps(ctx *gin.Context) {
 	var lamps []ds.Lamp
 	var err error
 
-	searchQuery := ctx.Query("query")
+	searchQuery := ctx.Query("title")
 	if searchQuery == "" {
 		lamps, err = h.repo.Lamp.GetLamps()
 		if err != nil {
@@ -55,7 +55,7 @@ func (h *LampsHandler) GetLamps(ctx *gin.Context) {
 		}
 	}
 
-	calcRequestID, calcRequestEntryCnt, err := h.repo.CalcRequest.GetCalcRequestIDEntryCntByUserID(1)
+	lightRequestID, lightRequestEntryCnt, err := h.repo.LightRequest.GetLightRequestIDEntryCntByUserID(1)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusNotFound)
@@ -68,12 +68,12 @@ func (h *LampsHandler) GetLamps(ctx *gin.Context) {
 		"search": CompTextInput{
 			ShowLabel:   false,
 			Type:        "text",
-			Name:        "query",
+			Name:        "title",
 			Placeholder: "Поиск приборов",
 			Value:       searchQuery,
 		},
-		"calcRequestID":       calcRequestID,
-		"calcRequestEntryCnt": calcRequestEntryCnt,
+		"lightRequestID":       lightRequestID,
+		"lightRequestEntryCnt": lightRequestEntryCnt,
 	})
 }
 
@@ -86,7 +86,7 @@ func (h *LampsHandler) AddLampToRequest(ctx *gin.Context) {
 		return
 	}
 
-	err = h.repo.CalcRequest.AddLampToCalcRequest(lampID, 1)
+	err = h.repo.LightRequest.AddLampToLightRequest(lampID, 1)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusBadRequest)

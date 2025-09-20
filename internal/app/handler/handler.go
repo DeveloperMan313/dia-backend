@@ -10,11 +10,11 @@ func RegisterHandlers(router *gin.Engine, repo *repository.Repository) {
 	router.LoadHTMLGlob("./templates/**/*")
 	router.Static("/static", "./resources")
 
-	calcRequestHandler := NewCalcRequestHandler(repo)
+	lightRequestHandler := NewLightRequestHandler(repo)
 	lampHandler := NewLampHandler(repo)
 	lampsHandler := NewLampsHandler(repo)
 
-	calcRequestHandler.Register(router)
+	lightRequestHandler.Register(router)
 	lampHandler.Register(router)
 	lampsHandler.Register(router)
 }

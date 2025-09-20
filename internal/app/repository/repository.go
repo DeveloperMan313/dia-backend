@@ -8,8 +8,8 @@ import (
 )
 
 type Repository struct {
-	Lamp        *LampRepository
-	CalcRequest *CalcRequestRepository
+	Lamp         *LampRepository
+	LightRequest *LightRequestRepository
 }
 
 func NewRepository() (*Repository, error) {
@@ -19,7 +19,7 @@ func NewRepository() (*Repository, error) {
 	}
 
 	return &Repository{
-		Lamp:        NewLampRepository(db),
-		CalcRequest: NewCalcRequestRepository(db),
+		Lamp:         NewLampRepository(db),
+		LightRequest: NewLightRequestRepository(db),
 	}, nil
 }

@@ -11,22 +11,22 @@ import (
 	"gorm.io/gorm"
 )
 
-type CalcRequestHandler struct {
+type LightRequestHandler struct {
 	repo *repository.Repository
 }
 
-func NewCalcRequestHandler(repository *repository.Repository) *CalcRequestHandler {
-	return &CalcRequestHandler{
+func NewLightRequestHandler(repository *repository.Repository) *LightRequestHandler {
+	return &LightRequestHandler{
 		repo: repository,
 	}
 }
 
-func (h *CalcRequestHandler) Register(router *gin.Engine) {
-	router.GET("/calc-request/:id", h.GetCalcRequestByID)
-	router.POST("/calc-request/:id", h.DeleteCalcRequest)
+func (h *LightRequestHandler) Register(router *gin.Engine) {
+	router.GET("/light-request/:id", h.GetLightRequestByID)
+	router.POST("/light-request/:id", h.DeleteLightRequest)
 }
 
-func (h *CalcRequestHandler) GetCalcRequestByID(ctx *gin.Context) {
+func (h *LightRequestHandler) GetLightRequestByID(ctx *gin.Context) {
 	lampIDStr := ctx.Param("id")
 	reqID, err := strconv.ParseUint(lampIDStr, 10, 64)
 	if err != nil {
@@ -35,20 +35,20 @@ func (h *CalcRequestHandler) GetCalcRequestByID(ctx *gin.Context) {
 		return
 	}
 
-	calcRequest, err := h.repo.CalcRequest.GetCalcRequestByID(reqID, 1)
+	lightRequest, err := h.repo.LightRequest.GetLightRequestByID(reqID, 1)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusNotFound)
 		return
 	}
 
-	ctx.HTML(http.StatusOK, "calc_request.html", gin.H{
-		"title":       "Просмотр заявки",
-		"calcRequest": &calcRequest,
+	ctx.HTML(http.StatusOK, "light_request.html", gin.H{
+		"title":        "Просмотр заявки",
+		"lightRequest": &lightRequest,
 	})
 }
 
-func (h *CalcRequestHandler) DeleteCalcRequest(ctx *gin.Context) {
+func (h *LightRequestHandler) DeleteLightRequest(ctx *gin.Context) {
 	requestIDStr := ctx.PostForm("request-id")
 	requestID, err := strconv.ParseUint(requestIDStr, 10, 64)
 	if err != nil {
@@ -57,7 +57,7 @@ func (h *CalcRequestHandler) DeleteCalcRequest(ctx *gin.Context) {
 		return
 	}
 
-	err = h.repo.CalcRequest.DeleteCalcRequest(requestID, 1)
+	err = h.repo.LightRequest.DeleteLightRequest(requestID, 1)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		logrus.Error(err)
 		ctx.Status(http.StatusNotFound)

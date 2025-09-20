@@ -15,9 +15,9 @@ INSERT INTO lamps (title, power_w, luminous_flux_lm, scattering_angle_deg, image
 INSERT INTO users (username, passwrd, is_mod) VALUES
   ('test_user', 'test_password', false);
 
-INSERT INTO calc_requests (user_id, moderator_id, max_total_power_w, total_power_w) VALUES
+INSERT INTO light_requests (user_id, moderator_id, max_total_power_w, total_power_w) VALUES
   (1, NULL, 200, 158);
 
-INSERT INTO calc_request_to_lamps (request_id, lamp_id, area_m2, number) VALUES
+INSERT INTO light_request_to_lamps (request_id, lamp_id, area_m2, number) VALUES
   (1, 2, 40, 1),
   (1, 3, 25, 10);

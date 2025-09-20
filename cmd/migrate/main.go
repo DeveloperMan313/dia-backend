@@ -22,8 +22,8 @@ func main() {
 
 	err = db.AutoMigrate(
 		&ds.Lamp{},
-		&ds.CalcRequest{},
-		&ds.CalcRequestToLamp{},
+		&ds.LightRequest{},
+		&ds.LightRequestToLamp{},
 		&ds.User{},
 	)
 	if err != nil {
