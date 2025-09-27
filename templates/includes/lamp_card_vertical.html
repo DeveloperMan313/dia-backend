@@ -2,9 +2,11 @@
 <div class="lamp-card lamp-card_vertical">
     <a class="lamp-card__a" href="/lamp/{{ .ID }}">
         <img class="lamp-card__image" src="{{ .ImageURL }}" alt="{{ .Title }}">
-        <div class="lamp-card__body">
-            <h2 class="lamp-card__title">{{ .Title }}</h2>
-            <p class="lamp-card__about">{{ .LuminousFluxLm }} лм</p>
+        <div class="lamp-card__body-wrapper">
+            <div class="lamp-card__body">
+                <h2 class="lamp-card__title">{{ .Title }}</h2>
+                <p class="lamp-card__about">{{ .LuminousFluxLm }} лм</p>
+            </div>
         </div>
     </a>
 </div>
