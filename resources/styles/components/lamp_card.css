@@ -55,6 +55,10 @@
     color: var(--text-secondary);
 }
 
+.lamp-card.lamp-card_horizontal .lamp-card__about .text-input {
+    width: 100%;
+}
+
 .lamp-card.lamp-card_vertical .lamp-card__body {
     padding: var(--m-3);
     padding-top: var(--m-5);

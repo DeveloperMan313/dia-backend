@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"dia-backend/internal/app/ds"
 	"dia-backend/internal/app/repository"
 	"errors"
 	"net/http"
@@ -26,6 +27,33 @@ func (h *LightRequestHandler) Register(router *gin.Engine) {
 	router.POST("/light-request/:id", h.DeleteLightRequest)
 }
 
+type LightRequestTemplateEntry struct {
+	Lamp   ds.Lamp
+	AreaM2 CompTextInput
+	Number uint64
+}
+
+func NewLightRequestTemplateEntry(lightReqEntry *ds.LightRequestToLamp) *LightRequestTemplateEntry {
+	return &LightRequestTemplateEntry{
+		Lamp: lightReqEntry.Lamp,
+		AreaM2: CompTextInput{
+			ShowLabel:   true,
+			Label:       "Площадь, м²",
+			Type:        "text",
+			Name:        "area-m2",
+			Value:       strconv.FormatFloat(lightReqEntry.AreaM2, 'f', 2, 64),
+			Placeholder: "Площадь",
+		},
+		Number: lightReqEntry.Number,
+	}
+}
+
+type LightRequestTemplate struct {
+	ID          uint64
+	TotalPowerW CompTextInput
+	Entries     []LightRequestTemplateEntry
+}
+
 func (h *LightRequestHandler) GetLightRequestByID(ctx *gin.Context) {
 	lampIDStr := ctx.Param("id")
 	reqID, err := strconv.ParseUint(lampIDStr, 10, 64)
@@ -42,9 +70,25 @@ func (h *LightRequestHandler) GetLightRequestByID(ctx *gin.Context) {
 		return
 	}
 
+	lightReqTemplate := LightRequestTemplate{
+		ID: lightRequest.ID,
+		TotalPowerW: CompTextInput{
+			ShowLabel:   true,
+			Label:       "Суммарная мощность, вт",
+			Type:        "text",
+			Name:        "max-total-power-w",
+			Value:       strconv.FormatFloat(lightRequest.MaxTotalPowerW, 'f', 2, 64),
+			Placeholder: "Мощность",
+		},
+	}
+
+	for _, lightReqToLamp := range lightRequest.LightRequestToLamp {
+		lightReqTemplate.Entries = append(lightReqTemplate.Entries, *NewLightRequestTemplateEntry(&lightReqToLamp))
+	}
+
 	ctx.HTML(http.StatusOK, "light_request.html", gin.H{
-		"title":        "Просмотр заявки",
-		"lightRequest": &lightRequest,
+		"title":        "Составление заявки",
+		"lightRequest": &lightReqTemplate,
 	})
 }
 
