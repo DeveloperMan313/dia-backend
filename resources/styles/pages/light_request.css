@@ -6,6 +6,10 @@
     align-items: center;
 }
 
+.page-request .page-request__power-section .text-input {
+    width: 16rem;
+}
+
 .page-request .page-request__cards {
     display: flex;
     flex-direction: column;

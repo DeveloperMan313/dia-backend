@@ -21,6 +21,32 @@ func NewLightRequestHandler(lampRepo *repository.LampRepository, lightReqRepo *r
 	}
 }
 
+type LightRequestTemplateEntry struct {
+	Lamp   repository.Lamp
+	AreaM2 CompTextInput
+	Number int
+}
+
+func NewLightRequestTemplateEntry(lightReqEntry *repository.LightRequestViewEntry) *LightRequestTemplateEntry {
+	return &LightRequestTemplateEntry{
+		Lamp: lightReqEntry.Lamp,
+		AreaM2: CompTextInput{
+			ShowLabel:   true,
+			Label:       "Площадь, м²",
+			Type:        "text",
+			Name:        "area-m2",
+			Value:       strconv.FormatFloat(float64(lightReqEntry.AreaM2), 'f', 2, 32),
+			Placeholder: "Площадь",
+		},
+		Number: lightReqEntry.Number,
+	}
+}
+
+type LightRequestTemplate struct {
+	TotalPowerW CompTextInput
+	Entries     []LightRequestTemplateEntry
+}
+
 func (h *LightRequestHandler) GetLightRequestByID(ctx *gin.Context) {
 	lampIDStr := ctx.Param("id")
 	reqID, err := strconv.Atoi(lampIDStr)
@@ -37,8 +63,23 @@ func (h *LightRequestHandler) GetLightRequestByID(ctx *gin.Context) {
 		return
 	}
 
+	lightReqTemplate := LightRequestTemplate{
+		TotalPowerW: CompTextInput{
+			ShowLabel:   true,
+			Label:       "Суммарная мощность, вт",
+			Type:        "text",
+			Name:        "max-total-power-w",
+			Value:       strconv.FormatFloat(float64(lightReqView.LightRequest.MaxTotalPowerW), 'f', 2, 32),
+			Placeholder: "Мощность",
+		},
+	}
+
+	for _, item := range lightReqView.Entries {
+		lightReqTemplate.Entries = append(lightReqTemplate.Entries, *NewLightRequestTemplateEntry(&item))
+	}
+
 	ctx.HTML(http.StatusOK, "light_request.html", gin.H{
-		"title": "Просмотр заявки",
-		"view":  &lightReqView,
+		"title": "Составление заявки",
+		"view":  &lightReqTemplate,
 	})
 }
