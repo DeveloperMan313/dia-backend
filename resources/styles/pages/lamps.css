@@ -13,19 +13,14 @@
 
     width: 100%;
     padding: 0 var(--cards-gap);
-    display: grid;
-    grid-template-columns: repeat(var(--cards-in-row), 1fr);
+    display: flex;
+    flex-direction: row;
     gap: var(--cards-gap);
+    flex-wrap: wrap;
 }
 
 .page-lamps .page-lamps__lamp-cards .lamp-card {
-    --width: calc(
-        (100vw - (var(--cards-in-row) + 1) * var(--cards-gap)) /
-            var(--cards-in-row)
-    );
-
-    width: var(--width);
-    height: calc(var(--width) + 5rem);
+    width: calc((100% - (var(--cards-in-row) - 1) * var(--cards-gap)) / var(--cards-in-row));
 }
 
 .page-lamps .page-lamps__lamp-cards .lamp-card:nth-of-type(6n) {
@@ -38,7 +33,7 @@
     gap: var(--m-2);
 }
 
-.page-lamps .page-lamps__search-section > .text-input {
+.page-lamps .page-lamps__search-section>.text-input {
     width: 25rem;
 }
 
