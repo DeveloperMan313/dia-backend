@@ -9,8 +9,7 @@ type LightRequest struct {
 	User               User                 `gorm:"foreignKey:UserID;references:ID"`
 	ModeratorId        uint64               `gorm:"default:null"`
 	Moderator          User                 `gorm:"foreignKey:ModeratorId;references:ID"`
-	MaxTotalPowerW     float64              `gorm:"type:double precision;not null;default:1000"`
-	TotalPowerW        float64              `gorm:"type:double precision"`
+	MaxTotalPowerW     float64              `gorm:"type:double precision"`
 	LightRequestToLamp []LightRequestToLamp `gorm:"foreignKey:RequestID"`
 	CreatedAt          time.Time            `gorm:"not null;default:now()"`
 	FormedAt           time.Time            `gorm:"default:null"`

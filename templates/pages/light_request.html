@@ -3,7 +3,7 @@
 <div class="page-request">
     <h1>Составление заявки</h1>
     <div class="page-request__power-section">
-        {{ template "text_input" .lightRequest.TotalPowerW }}
+        {{ template "text_input" .lightRequest.MaxTotalPowerW }}
     </div>
     <div class="page-request__cards">
         {{ range .lightRequest.Entries }} {{ template
