@@ -43,8 +43,8 @@ func NewLightRequestTemplateEntry(lightReqEntry *repository.LightRequestViewEntr
 }
 
 type LightRequestTemplate struct {
-	TotalPowerW CompTextInput
-	Entries     []LightRequestTemplateEntry
+	MaxTotalPowerW CompTextInput
+	Entries        []LightRequestTemplateEntry
 }
 
 func (h *LightRequestHandler) GetLightRequestByID(ctx *gin.Context) {
@@ -64,7 +64,7 @@ func (h *LightRequestHandler) GetLightRequestByID(ctx *gin.Context) {
 	}
 
 	lightReqTemplate := LightRequestTemplate{
-		TotalPowerW: CompTextInput{
+		MaxTotalPowerW: CompTextInput{
 			ShowLabel:   true,
 			Label:       "Суммарная мощность, вт",
 			Type:        "text",

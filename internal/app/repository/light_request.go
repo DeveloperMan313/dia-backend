@@ -14,7 +14,6 @@ func NewLightRequestRepository() (*LightRequestRepository, error) {
 type LightRequest struct {
 	ID             int
 	MaxTotalPowerW float32
-	TotalPowerW    float32
 }
 
 type LightRequestViewEntry struct {
@@ -33,7 +32,6 @@ var lightRequestViewByID = map[int]LightRequestView{
 		LightRequest: LightRequest{
 			ID:             1,
 			MaxTotalPowerW: 200,
-			TotalPowerW:    158,
 		},
 		Entries: []LightRequestViewEntry{
 			{
