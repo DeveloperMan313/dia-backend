@@ -132,7 +132,7 @@ func (r *LightRequestRepository) FormRequest(id uint64, userID uint64) error {
 	})
 }
 
-func (r *LightRequestRepository) ResolveOrRejectRequest(id uint64, moderatorID uint64, status uint8, totalPowerW float64) error {
+func (r *LightRequestRepository) ResolveOrRejectRequest(id uint64, moderatorID uint64, status uint8) error {
 	if status != 4 && status != 5 {
 		return errors.New("invalid status for moderator action")
 	}
@@ -147,13 +147,10 @@ func (r *LightRequestRepository) ResolveOrRejectRequest(id uint64, moderatorID u
 			return err
 		}
 
-		calculatedTotalPower := r.calculateTotalPower(lightRequest.ID)
-
 		updates := map[string]interface{}{
-			"status":        status,
-			"moderator_id":  moderatorID,
-			"closed_at":     time.Now(),
-			"total_power_w": calculatedTotalPower,
+			"status":       status,
+			"moderator_id": moderatorID,
+			"closed_at":    time.Now(),
 		}
 
 		return tx.Model(&lightRequest).Updates(updates).Error
@@ -216,7 +213,7 @@ func (r *LightRequestRepository) UpdateRequestToLamp(requestID uint64, lampID ui
 	})
 }
 
-func (r *LightRequestRepository) calculateTotalPower(requestID uint64) float64 {
+func (r *LightRequestRepository) CalculateTotalPower(requestID uint64) float64 {
 	var result struct {
 		TotalPower float64
 	}
