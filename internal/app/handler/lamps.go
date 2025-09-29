@@ -39,23 +39,14 @@ func (h *LampsHandler) GetLamps(ctx *gin.Context) {
 	var err error
 
 	searchQuery := ctx.Query("title")
-	if searchQuery == "" {
-		lamps, err = h.repo.Lamp.GetLamps()
-		if err != nil {
-			logrus.Error(err)
-			ctx.Status(http.StatusNotFound)
-			return
-		}
-	} else {
-		lamps, err = h.repo.Lamp.GetLampsByTitle(searchQuery)
-		if err != nil {
-			logrus.Error(err)
-			ctx.Status(http.StatusNotFound)
-			return
-		}
+	lamps, err = h.repo.Lamp.GetLamps(searchQuery)
+	if err != nil {
+		logrus.Error(err)
+		ctx.Status(http.StatusNotFound)
+		return
 	}
 
-	lightRequestID, lightRequestEntryCnt, err := h.repo.LightRequest.GetLightRequestIDEntryCntByUserID(1)
+	lightRequestID, lightRequestEntryCnt, err := h.repo.LightRequest.GetDraftRequestInfo(1)
 	if err != nil {
 		logrus.Error(err)
 		ctx.Status(http.StatusNotFound)

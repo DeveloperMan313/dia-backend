@@ -101,7 +101,7 @@ func (h *LightRequestHandler) DeleteLightRequest(ctx *gin.Context) {
 		return
 	}
 
-	err = h.repo.LightRequest.DeleteLightRequest(requestID, 1)
+	err = h.repo.LightRequest.DeleteRequest(requestID, 1)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		logrus.Error(err)
 		ctx.Status(http.StatusNotFound)
