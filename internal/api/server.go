@@ -15,6 +15,8 @@ func StartServer() {
 		panic(err)
 	}
 
+	defer repository.CloseDBConn(repo)
+
 	router := gin.Default()
 
 	handler.RegisterHandlers(router, repo)

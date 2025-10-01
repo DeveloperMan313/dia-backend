@@ -1,24 +1,31 @@
 package repository
 
 import (
+	"context"
 	"dia-backend/internal/app/ds"
+	"errors"
 	"fmt"
 	"mime/multipart"
+	"os"
 
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/minio/minio-go/v7"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type LampRepository struct {
-	db *gorm.DB
+	db          *gorm.DB
+	minioClient *minio.Client
 }
 
-func NewLampRepository(db *gorm.DB) *LampRepository {
+func NewLampRepository(db *gorm.DB, minioClient *minio.Client) *LampRepository {
 	return &LampRepository{
-		db: db,
+		db:          db,
+		minioClient: minioClient,
 	}
 }
 
@@ -96,7 +103,7 @@ func (r *LampRepository) AddLampImage(id uint64, fileHeader *multipart.FileHeade
 		newFileName := fmt.Sprintf("lamp_%d_%d%s", id, time.Now().Unix(), fileExt)
 		newFileName = strings.ToLower(newFileName)
 
-		imageURL, err := r.saveImageToMinIO(newFileName)
+		imageURL, err := r.saveLampImageToMinIO(newFileName, fileHeader)
 		if err != nil {
 			return err
 		}
@@ -140,14 +147,49 @@ func (r *LampRepository) AddLampToDraftRequest(lampID uint64, userID uint64) err
 	})
 }
 
-func (r *LampRepository) saveImageToMinIO(fileName string) (string, error) {
-	return fmt.Sprintf("http://localhost:9000/lamp-images/%s", fileName), nil
+const lampImagesBucket = "lamp-images"
+
+func (r *LampRepository) saveLampImageToMinIO(fileName string, fileHeader *multipart.FileHeader) (string, error) {
+	file, err := fileHeader.Open()
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	fileSize := fileHeader.Size
+
+	contentType := "application/octet-stream"
+	if strings.HasSuffix(strings.ToLower(fileName), ".jpg") || strings.HasSuffix(strings.ToLower(fileName), ".jpeg") {
+		contentType = "image/jpeg"
+	} else if strings.HasSuffix(strings.ToLower(fileName), ".png") {
+		contentType = "image/png"
+	} else if strings.HasSuffix(strings.ToLower(fileName), ".gif") {
+		contentType = "image/gif"
+	}
+
+	_, err = r.minioClient.PutObject(context.Background(), lampImagesBucket, fileName, file, fileSize, minio.PutObjectOptions{
+		ContentType: contentType,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s:%s/%s/%s", os.Getenv("MINIO_HOST"), os.Getenv("MINIO_SERVER_PORT"), lampImagesBucket, fileName), nil
 }
 
 func (r *LampRepository) deleteImageFile(imageURL string) error {
-	if strings.Contains(imageURL, "localhost:9000") {
-
-		fmt.Printf("Image deleted from MinIO: %s\n", imageURL)
+	minioOrigin := os.Getenv("MINIO_HOST") + ":" + os.Getenv("MINIO_SERVER_PORT")
+	if strings.Contains(imageURL, minioOrigin) {
+		parts := strings.Split(imageURL, "/")
+		if len(parts) > 0 {
+			fileName := parts[len(parts)-1]
+			err := r.minioClient.RemoveObject(context.Background(), lampImagesBucket, fileName, minio.RemoveObjectOptions{})
+			if err != nil {
+				return err
+			}
+			logrus.Printf("Image deleted from MinIO: %s\n", imageURL)
+			return nil
+		}
 	}
-	return nil
+	return errors.New("could not delete image file")
 }

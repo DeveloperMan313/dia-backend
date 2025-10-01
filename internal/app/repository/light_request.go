@@ -176,9 +176,19 @@ func (r *LightRequestRepository) RemoveLampFromRequest(requestID uint64, lampID 
 			return err
 		}
 
-		return tx.
+		result := tx.
 			Where("request_id = ? AND lamp_id = ?", requestID, lampID).
-			Delete(&ds.LightRequestToLamp{}).Error
+			Delete(&ds.LightRequestToLamp{})
+
+		if result.Error != nil {
+			return result.Error
+		}
+
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+
+		return nil
 	})
 }
 
@@ -206,10 +216,20 @@ func (r *LightRequestRepository) UpdateRequestToLamp(requestID uint64, lampID ui
 			return nil
 		}
 
-		return tx.
+		result := tx.
 			Model(&ds.LightRequestToLamp{}).
 			Where("request_id = ? AND lamp_id = ?", requestID, lampID).
-			Updates(updates).Error
+			Updates(updates)
+
+		if result.Error != nil {
+			return result.Error
+		}
+
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+
+		return nil
 	})
 }
 
