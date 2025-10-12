@@ -29,8 +29,24 @@ type UpdateRequestRequest struct {
 	MaxTotalPowerW *float64 `json:"max_total_power_w"`
 }
 
+// GetCartInfo godoc
+// @Summary      Get cart information
+// @Description  Get draft request ID and item count for current user
+// @Tags         light-requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  CartInfoResponse
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /light-requests/cart [get]
 func (h *RequestHandler) GetCartInfo(ctx *gin.Context) {
-	userID := GetFixedUserID()
+	userID, exists := GetUserIDFromContext(ctx)
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
 	requestID, itemCount, err := h.repo.LightRequest.GetDraftRequestInfo(userID)
 	if err != nil {
 		logrus.Error(err)
@@ -49,6 +65,20 @@ func (h *RequestHandler) GetCartInfo(ctx *gin.Context) {
 	})
 }
 
+// GetRequests godoc
+// @Summary      List all light requests
+// @Description  Get all light requests with optional filters (moderator only)
+// @Tags         light-requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        status     query  int     false  "Filter by status"
+// @Param        date_from  query  string  false  "Filter from date (YYYY-MM-DD)"
+// @Param        date_to    query  string  false  "Filter to date (YYYY-MM-DD)"
+// @Success      200  {array}   ds.LightRequest
+// @Failure      403  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /light-requests [get]
 func (h *RequestHandler) GetRequests(ctx *gin.Context) {
 	var statusFilter uint8
 	if statusStr := ctx.Query("status"); statusStr != "" {
@@ -79,6 +109,19 @@ func (h *RequestHandler) GetRequests(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, requests)
 }
 
+// GetRequestByID godoc
+// @Summary      Get light request by ID
+// @Description  Get detailed information about a specific light request
+// @Tags         light-requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Light Request ID"
+// @Success      200  {object}  ds.LightRequest
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Router       /light-requests/{id} [get]
 func (h *RequestHandler) GetRequestByID(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -87,7 +130,12 @@ func (h *RequestHandler) GetRequestByID(ctx *gin.Context) {
 		return
 	}
 
-	userID := GetFixedUserID()
+	userID, exists := GetUserIDFromContext(ctx)
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
 	request, err := h.repo.LightRequest.GetLightRequestByID(id, userID)
 	if err != nil {
 		logrus.Error(err)
@@ -98,6 +146,20 @@ func (h *RequestHandler) GetRequestByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, request)
 }
 
+// UpdateRequest godoc
+// @Summary      Update light request
+// @Description  Update max total power for a draft light request
+// @Tags         light-requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Light Request ID"
+// @Param        request body UpdateRequestRequest true "Update data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /light-requests/{id} [put]
 func (h *RequestHandler) UpdateRequest(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -121,6 +183,18 @@ func (h *RequestHandler) UpdateRequest(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Request updated successfully"})
 }
 
+// FormRequest godoc
+// @Summary      Form light request
+// @Description  Submit draft request for moderation
+// @Tags         light-requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Light Request ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Router       /light-requests/{id}/form [put]
 func (h *RequestHandler) FormRequest(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -129,7 +203,12 @@ func (h *RequestHandler) FormRequest(ctx *gin.Context) {
 		return
 	}
 
-	userID := GetFixedUserID()
+	userID, exists := GetUserIDFromContext(ctx)
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
 	if err := h.repo.LightRequest.FormRequest(id, userID); err != nil {
 		logrus.Error(err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -139,6 +218,19 @@ func (h *RequestHandler) FormRequest(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Request formed successfully"})
 }
 
+// ResolveRequest godoc
+// @Summary      Resolve light request
+// @Description  Approve and resolve a light request with calculations (moderator only)
+// @Tags         light-requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Light Request ID"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      403  {object}  map[string]string
+// @Router       /light-requests/{id}/resolve [put]
 func (h *RequestHandler) ResolveRequest(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -152,7 +244,14 @@ func (h *RequestHandler) ResolveRequest(ctx *gin.Context) {
 	deliveryDate := time.Now().AddDate(0, 1, 0)
 
 	calculatedLamps := make(map[uint64]uint64)
-	request, err := h.repo.LightRequest.GetLightRequestByID(id, GetFixedUserID())
+
+	userID, exists := GetUserIDFromContext(ctx)
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	request, err := h.repo.LightRequest.GetLightRequestByID(id, userID)
 	if err == nil {
 		for _, entry := range request.LightRequestToLamp {
 			// N = (E * S) / Phi
@@ -183,6 +282,19 @@ func (h *RequestHandler) ResolveRequest(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+// RejectRequest godoc
+// @Summary      Reject light request
+// @Description  Reject a light request (moderator only)
+// @Tags         light-requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Light Request ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      403  {object}  map[string]string
+// @Router       /light-requests/{id}/reject [put]
 func (h *RequestHandler) RejectRequest(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -201,6 +313,19 @@ func (h *RequestHandler) RejectRequest(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Request rejected successfully"})
 }
 
+// DeleteRequest godoc
+// @Summary      Delete light request
+// @Description  Delete a draft light request
+// @Tags         light-requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Light Request ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /light-requests/{id} [delete]
 func (h *RequestHandler) DeleteRequest(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -209,7 +334,12 @@ func (h *RequestHandler) DeleteRequest(ctx *gin.Context) {
 		return
 	}
 
-	userID := GetFixedUserID()
+	userID, exists := GetUserIDFromContext(ctx)
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
 	if err := h.repo.LightRequest.DeleteRequest(id, userID); err != nil {
 		logrus.Error(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete request"})

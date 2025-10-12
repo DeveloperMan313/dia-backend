@@ -166,7 +166,6 @@ func (r *LightRequestRepository) DeleteRequest(id uint64, userID uint64) error {
 
 func (r *LightRequestRepository) RemoveLampFromRequest(requestID uint64, lampID uint64, userID uint64) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-
 		var lightRequest ds.LightRequest
 		err := tx.
 			Where("id = ? AND user_id = ? AND status = 1", requestID, userID).
@@ -194,7 +193,6 @@ func (r *LightRequestRepository) RemoveLampFromRequest(requestID uint64, lampID 
 
 func (r *LightRequestRepository) UpdateRequestToLamp(requestID uint64, lampID uint64, userID uint64, areaM2 *float64, number *uint64) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-
 		var lightRequest ds.LightRequest
 		err := tx.
 			Where("id = ? AND user_id = ? AND status = 1", requestID, userID).

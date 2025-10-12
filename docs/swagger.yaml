@@ -1,0 +1,1053 @@
+basePath: /api
+definitions:
+  ds.Lamp:
+    properties:
+      id:
+        type: integer
+      image_url:
+        type: string
+      luminous_flux_lm:
+        type: number
+      power_w:
+        type: number
+      scattering_angle_deg:
+        type: number
+      title:
+        type: string
+    type: object
+  ds.LightRequest:
+    properties:
+      closed_at:
+        type: string
+      created_at:
+        type: string
+      formed_at:
+        type: string
+      light_request_to_lamp:
+        items:
+          $ref: '#/definitions/ds.LightRequestToLamp'
+        type: array
+      max_total_power_w:
+        type: number
+      status:
+        description: 1 - draft, 2 - deleted, 3 - pending, 4 - resolved, 5 - rejected
+        type: integer
+    type: object
+  ds.LightRequestToLamp:
+    properties:
+      area_m2:
+        type: number
+      lamp:
+        $ref: '#/definitions/ds.Lamp'
+      number:
+        type: integer
+    type: object
+  ds.User:
+    properties:
+      id:
+        type: integer
+      role:
+        $ref: '#/definitions/role.Role'
+      username:
+        type: string
+    type: object
+  handler.CartInfoResponse:
+    properties:
+      item_count:
+        type: integer
+      request_id:
+        type: integer
+    type: object
+  handler.CreateLampRequest:
+    properties:
+      luminous_flux_lm:
+        type: number
+      power_w:
+        type: number
+      scattering_angle_deg:
+        type: number
+      title:
+        type: string
+    required:
+    - luminous_flux_lm
+    - power_w
+    - scattering_angle_deg
+    - title
+    type: object
+  handler.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  handler.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      role:
+        type: string
+      token_type:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  handler.RegisterRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  handler.RegisterResponse:
+    properties:
+      message:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  handler.RemoveFromRequestRequest:
+    properties:
+      lamp_id:
+        type: integer
+      request_id:
+        type: integer
+    required:
+    - lamp_id
+    - request_id
+    type: object
+  handler.UpdateLampRequest:
+    properties:
+      luminous_flux_lm:
+        type: number
+      power_w:
+        type: number
+      scattering_angle_deg:
+        type: number
+      title:
+        type: string
+    type: object
+  handler.UpdateProfileRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  handler.UpdateRequestLampRequest:
+    properties:
+      area_m2:
+        type: number
+      lamp_id:
+        type: integer
+      number:
+        type: integer
+      request_id:
+        type: integer
+    required:
+    - lamp_id
+    - request_id
+    type: object
+  handler.UpdateRequestRequest:
+    properties:
+      max_total_power_w:
+        type: number
+    type: object
+  role.Role:
+    enum:
+    - 0
+    - 1
+    type: integer
+    x-enum-comments:
+      Moderator: "1"
+      User: "0"
+    x-enum-descriptions:
+    - "0"
+    - "1"
+    x-enum-varnames:
+    - User
+    - Moderator
+host: localhost:8001
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: https://github.com/yourusername/dia-backend
+  description: REST API для веб-приложения расчета освещения комнат
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Let There Be Light API
+  version: "1.0"
+paths:
+  /lamps:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all lamps with optional title filter
+      parameters:
+      - description: Filter by lamp title
+        in: query
+        name: title
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ds.Lamp'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List lamps
+      tags:
+      - lamps
+    post:
+      consumes:
+      - application/json
+      description: Create a new lamp (moderator only)
+      parameters:
+      - description: Lamp data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreateLampRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/ds.Lamp'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new lamp
+      tags:
+      - lamps
+  /lamps/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a lamp (moderator only)
+      parameters:
+      - description: Lamp ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete lamp
+      tags:
+      - lamps
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific lamp
+      parameters:
+      - description: Lamp ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.Lamp'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get lamp by ID
+      tags:
+      - lamps
+    put:
+      consumes:
+      - application/json
+      description: Update lamp information (moderator only)
+      parameters:
+      - description: Lamp ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Lamp update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateLampRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update lamp
+      tags:
+      - lamps
+  /lamps/{id}/draft:
+    post:
+      consumes:
+      - application/json
+      description: Add lamp to user's draft light request
+      parameters:
+      - description: Lamp ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add lamp to draft request
+      tags:
+      - lamps
+  /lamps/{id}/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload or replace lamp image (moderator only)
+      parameters:
+      - description: Lamp ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Lamp image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add lamp image
+      tags:
+      - lamps
+  /light-request-lamps:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a lamp from a draft light request
+      parameters:
+      - description: Remove lamp data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RemoveFromRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove lamp from request
+      tags:
+      - light-request-lamps
+    put:
+      consumes:
+      - application/json
+      description: Update area and/or number of lamps in a draft request
+      parameters:
+      - description: Update lamp data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateRequestLampRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update lamp in request
+      tags:
+      - light-request-lamps
+  /light-requests:
+    get:
+      consumes:
+      - application/json
+      description: Get all light requests with optional filters (moderator only)
+      parameters:
+      - description: Filter by status
+        in: query
+        name: status
+        type: integer
+      - description: Filter from date (YYYY-MM-DD)
+        in: query
+        name: date_from
+        type: string
+      - description: Filter to date (YYYY-MM-DD)
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ds.LightRequest'
+            type: array
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all light requests
+      tags:
+      - light-requests
+  /light-requests/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a draft light request
+      parameters:
+      - description: Light Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete light request
+      tags:
+      - light-requests
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific light request
+      parameters:
+      - description: Light Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.LightRequest'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get light request by ID
+      tags:
+      - light-requests
+    put:
+      consumes:
+      - application/json
+      description: Update max total power for a draft light request
+      parameters:
+      - description: Light Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update light request
+      tags:
+      - light-requests
+  /light-requests/{id}/form:
+    put:
+      consumes:
+      - application/json
+      description: Submit draft request for moderation
+      parameters:
+      - description: Light Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Form light request
+      tags:
+      - light-requests
+  /light-requests/{id}/reject:
+    put:
+      consumes:
+      - application/json
+      description: Reject a light request (moderator only)
+      parameters:
+      - description: Light Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reject light request
+      tags:
+      - light-requests
+  /light-requests/{id}/resolve:
+    put:
+      consumes:
+      - application/json
+      description: Approve and resolve a light request with calculations (moderator
+        only)
+      parameters:
+      - description: Light Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Resolve light request
+      tags:
+      - light-requests
+  /light-requests/cart:
+    get:
+      consumes:
+      - application/json
+      description: Get draft request ID and item count for current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.CartInfoResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get cart information
+      tags:
+      - light-requests
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT token
+      parameters:
+      - description: User credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User login
+      tags:
+      - users
+  /users/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate JWT token by adding it to blacklist
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: User logout
+      tags:
+      - users
+  /users/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get current authenticated user's profile information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.User'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update current authenticated user's profile (username and/or password)
+      parameters:
+      - description: Profile update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with username and password
+      parameters:
+      - description: User registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

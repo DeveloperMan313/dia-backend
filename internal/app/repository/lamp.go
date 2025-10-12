@@ -69,7 +69,6 @@ func (r *LampRepository) UpdateLamp(id uint64, lampData *ds.Lamp) error {
 
 func (r *LampRepository) DeleteLamp(id uint64) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-
 		var lamp ds.Lamp
 		if err := tx.First(&lamp, id).Error; err != nil {
 			return err
@@ -87,7 +86,6 @@ func (r *LampRepository) DeleteLamp(id uint64) error {
 
 func (r *LampRepository) AddLampImage(id uint64, fileHeader *multipart.FileHeader) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-
 		var lamp ds.Lamp
 		if err := tx.Where("is_deleted = false").First(&lamp, id).Error; err != nil {
 			return err
@@ -114,7 +112,6 @@ func (r *LampRepository) AddLampImage(id uint64, fileHeader *multipart.FileHeade
 
 func (r *LampRepository) AddLampToDraftRequest(lampID uint64, userID uint64) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-
 		var lamp ds.Lamp
 		if err := tx.Where("is_deleted = false").First(&lamp, lampID).Error; err != nil {
 			return err

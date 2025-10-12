@@ -12,8 +12,8 @@ INSERT INTO lamps (title, power_w, luminous_flux_lm, scattering_angle_deg, image
   ('Светильник потолочный светодиодный Tend 9W 4000K черный', 9, 765, 120, 'http://localhost:9000/lamp-images/11.jpg', false),
   ('Подвесной светодиодный светильник', 40, 3200, 120, 'http://localhost:9000/lamp-images/12.jpg', false);
 
-INSERT INTO users (username, passwrd, is_mod) VALUES
-  ('test_user', 'test_password', false);
+INSERT INTO users (username, passwrd, role) VALUES
+  ('user', 'd74ff0ee8da3b9806b18c877dbf29bbde50b5bd8e4dad7a3a725000feb82e8f1', 0);
 
 INSERT INTO light_requests (user_id, moderator_id, max_total_power_w) VALUES
   (1, NULL, 200);

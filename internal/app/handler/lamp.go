@@ -34,6 +34,15 @@ type UpdateLampRequest struct {
 	ScatteringAngleDeg *float64 `json:"scattering_angle_deg"`
 }
 
+// @Summary      List lamps
+// @Description  Get list of all lamps with optional title filter
+// @Tags         lamps
+// @Accept       json
+// @Produce      json
+// @Param        title  query  string  false  "Filter by lamp title"
+// @Success      200  {array}   ds.Lamp
+// @Failure      500  {object}  map[string]string
+// @Router       /lamps [get]
 func (h *LampHandler) GetLamps(ctx *gin.Context) {
 	searchQuery := ctx.Query("title")
 
@@ -47,6 +56,16 @@ func (h *LampHandler) GetLamps(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, lamps)
 }
 
+// @Summary      Get lamp by ID
+// @Description  Get detailed information about a specific lamp
+// @Tags         lamps
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Lamp ID"
+// @Success      200  {object}  ds.Lamp
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Router       /lamps/{id} [get]
 func (h *LampHandler) GetLampByID(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -65,6 +84,18 @@ func (h *LampHandler) GetLampByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, lamp)
 }
 
+// @Summary      Create a new lamp
+// @Description  Create a new lamp (moderator only)
+// @Tags         lamps
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body CreateLampRequest true "Lamp data"
+// @Success      201  {object}  ds.Lamp
+// @Failure      400  {object}  map[string]string
+// @Failure      403  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /lamps [post]
 func (h *LampHandler) CreateLamp(ctx *gin.Context) {
 	var req CreateLampRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -88,6 +119,19 @@ func (h *LampHandler) CreateLamp(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, lamp)
 }
 
+// @Summary      Update lamp
+// @Description  Update lamp information (moderator only)
+// @Tags         lamps
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Lamp ID"
+// @Param        request body UpdateLampRequest true "Lamp update data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      403  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /lamps/{id} [put]
 func (h *LampHandler) UpdateLamp(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -125,6 +169,18 @@ func (h *LampHandler) UpdateLamp(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Lamp updated successfully"})
 }
 
+// @Summary      Delete lamp
+// @Description  Soft delete a lamp (moderator only)
+// @Tags         lamps
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Lamp ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      403  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /lamps/{id} [delete]
 func (h *LampHandler) DeleteLamp(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -142,6 +198,19 @@ func (h *LampHandler) DeleteLamp(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Lamp deleted successfully"})
 }
 
+// @Summary      Add lamp image
+// @Description  Upload or replace lamp image (moderator only)
+// @Tags         lamps
+// @Accept       multipart/form-data
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Lamp ID"
+// @Param        image formData file true "Lamp image file"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      403  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /lamps/{id}/image [post]
 func (h *LampHandler) AddLampImage(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -165,6 +234,18 @@ func (h *LampHandler) AddLampImage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Image added successfully"})
 }
 
+// @Summary      Add lamp to draft request
+// @Description  Add lamp to user's draft light request
+// @Tags         lamps
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Lamp ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /lamps/{id}/draft [post]
 func (h *LampHandler) AddToDraftRequest(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -173,7 +254,12 @@ func (h *LampHandler) AddToDraftRequest(ctx *gin.Context) {
 		return
 	}
 
-	userID := GetFixedUserID()
+	userID, exists := GetUserIDFromContext(ctx)
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
 	if err := h.repo.Lamp.AddLampToDraftRequest(id, userID); err != nil {
 		logrus.Error(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add lamp to draft request"})

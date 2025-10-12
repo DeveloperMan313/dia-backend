@@ -2,6 +2,7 @@ package handler
 
 import (
 	"dia-backend/internal/app/repository"
+	"dia-backend/internal/app/role"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,45 +10,51 @@ import (
 func RegisterHandlers(router *gin.Engine, repo *repository.Repository) {
 	apiRouter := router.Group("/api")
 
-	lampHandler := NewLampHandler(repo)
-	lampRouter := apiRouter.Group("/lamps")
-	{
-		lampRouter.GET("", lampHandler.GetLamps)
-		lampRouter.GET("/:id", lampHandler.GetLampByID)
-		lampRouter.POST("", lampHandler.CreateLamp)
-		lampRouter.PUT("/:id", lampHandler.UpdateLamp)
-		lampRouter.DELETE("/:id", lampHandler.DeleteLamp)
-		lampRouter.POST("/:id/image", lampHandler.AddLampImage)
-		lampRouter.POST("/:id/draft", lampHandler.AddToDraftRequest)
-	}
-
-	requestHandler := NewRequestHandler(repo)
-	requestRouter := apiRouter.Group("/light-requests")
-	{
-		requestRouter.GET("/cart", requestHandler.GetCartInfo)
-		requestRouter.GET("", requestHandler.GetRequests)
-		requestRouter.GET("/:id", requestHandler.GetRequestByID)
-		requestRouter.PUT("/:id", requestHandler.UpdateRequest)
-		requestRouter.PUT("/:id/form", requestHandler.FormRequest)
-		requestRouter.PUT("/:id/resolve", requestHandler.ResolveRequest)
-		requestRouter.PUT("/:id/reject", requestHandler.RejectRequest)
-		requestRouter.DELETE("/:id", requestHandler.DeleteRequest)
-	}
-
-	requestLampHandler := NewRequestLampHandler(repo)
-	requestLampRouter := apiRouter.Group("/light-request-lamps")
-	{
-		requestLampRouter.DELETE("", requestLampHandler.RemoveFromRequest)
-		requestLampRouter.PUT("", requestLampHandler.UpdateRequestLamp)
-	}
+	baseHandler := NewBaseHandler(repo)
 
 	userHandler := NewUserHandler(repo)
 	userRouter := apiRouter.Group("/users")
 	{
 		userRouter.POST("/register", userHandler.Register)
-		userRouter.GET("/profile", userHandler.GetProfile)
-		userRouter.PUT("/profile", userHandler.UpdateProfile)
 		userRouter.POST("/login", userHandler.Login)
-		userRouter.POST("/logout", userHandler.Logout)
+		userRouter.POST("/logout", baseHandler.WithAuthCheck(role.User, role.Moderator), userHandler.Logout)
+		userRouter.GET("/profile", baseHandler.WithAuthCheck(role.User, role.Moderator), userHandler.GetProfile)
+		userRouter.PUT("/profile", baseHandler.WithAuthCheck(role.User, role.Moderator), userHandler.UpdateProfile)
+	}
+
+	lampHandler := NewLampHandler(repo)
+	lampRouter := apiRouter.Group("/lamps")
+	{
+		lampRouter.GET("", lampHandler.GetLamps)
+		lampRouter.GET("/:id", lampHandler.GetLampByID)
+
+		lampRouter.POST("", baseHandler.WithAuthCheck(role.Moderator), lampHandler.CreateLamp)
+		lampRouter.PUT("/:id", baseHandler.WithAuthCheck(role.Moderator), lampHandler.UpdateLamp)
+		lampRouter.DELETE("/:id", baseHandler.WithAuthCheck(role.Moderator), lampHandler.DeleteLamp)
+		lampRouter.POST("/:id/image", baseHandler.WithAuthCheck(role.Moderator), lampHandler.AddLampImage)
+
+		lampRouter.POST("/:id/draft", baseHandler.WithAuthCheck(role.User, role.Moderator), lampHandler.AddToDraftRequest)
+	}
+
+	requestHandler := NewRequestHandler(repo)
+	requestRouter := apiRouter.Group("/light-requests")
+	{
+		requestRouter.GET("/cart", baseHandler.WithAuthCheck(role.User, role.Moderator), requestHandler.GetCartInfo)
+		requestRouter.GET("/:id", baseHandler.WithAuthCheck(role.User, role.Moderator), requestHandler.GetRequestByID)
+		requestRouter.PUT("/:id", baseHandler.WithAuthCheck(role.User, role.Moderator), requestHandler.UpdateRequest)
+		requestRouter.PUT("/:id/form", baseHandler.WithAuthCheck(role.User, role.Moderator), requestHandler.FormRequest)
+		requestRouter.DELETE("/:id", baseHandler.WithAuthCheck(role.User, role.Moderator), requestHandler.DeleteRequest)
+
+		requestRouter.GET("", baseHandler.WithAuthCheck(role.Moderator), requestHandler.GetRequests)
+		requestRouter.PUT("/:id/resolve", baseHandler.WithAuthCheck(role.Moderator), requestHandler.ResolveRequest)
+		requestRouter.PUT("/:id/reject", baseHandler.WithAuthCheck(role.Moderator), requestHandler.RejectRequest)
+	}
+
+	requestLampHandler := NewRequestLampHandler(repo)
+	requestLampRouter := apiRouter.Group("/light-request-lamps")
+	requestLampRouter.Use(baseHandler.WithAuthCheck(role.User, role.Moderator))
+	{
+		requestLampRouter.DELETE("", requestLampHandler.RemoveFromRequest)
+		requestLampRouter.PUT("", requestLampHandler.UpdateRequestLamp)
 	}
 }

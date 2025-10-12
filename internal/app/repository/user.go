@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"crypto/sha256"
 	"dia-backend/internal/app/ds"
+	"encoding/hex"
 	"errors"
 
 	"gorm.io/gorm"
@@ -26,12 +28,14 @@ func (r *UserRepository) CreateUser(user *ds.User) error {
 		return err
 	}
 
+	user.Password = generateHashString(user.Password)
+
 	return r.db.Create(user).Error
 }
 
 func (r *UserRepository) GetUserByID(id uint64) (*ds.User, error) {
 	var user ds.User
-	err := r.db.Select("id, username, is_mod").First(&user, id).Error
+	err := r.db.Select("id, username, role").First(&user, id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +46,6 @@ func (r *UserRepository) UpdateUser(id uint64, username *string, password *strin
 	updates := make(map[string]interface{})
 
 	if username != nil {
-
 		var existingUser ds.User
 		err := r.db.Where("username = ? AND id != ?", *username, id).First(&existingUser).Error
 		if err == nil {
@@ -54,7 +57,7 @@ func (r *UserRepository) UpdateUser(id uint64, username *string, password *strin
 	}
 
 	if password != nil {
-		updates["passwrd"] = *password
+		updates["password"] = generateHashString(*password)
 	}
 
 	if len(updates) == 0 {
@@ -66,13 +69,18 @@ func (r *UserRepository) UpdateUser(id uint64, username *string, password *strin
 
 func (r *UserRepository) AuthenticateUser(username, password string) (*ds.User, error) {
 	var user ds.User
-	err := r.db.Where("username = ? AND passwrd = ?", username, password).First(&user).Error
+	err := r.db.Where("username = ?", username).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("invalid credentials")
 		}
 		return nil, err
 	}
+
+	if user.Password != generateHashString(password) {
+		return nil, errors.New("invalid credentials")
+	}
+
 	return &user, nil
 }
 
@@ -89,4 +97,10 @@ func (r *UserRepository) UserExists(id uint64) bool {
 	var count int64
 	r.db.Model(&ds.User{}).Where("id = ?", id).Count(&count)
 	return count > 0
+}
+
+func generateHashString(s string) string {
+	h := sha256.New()
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
 }

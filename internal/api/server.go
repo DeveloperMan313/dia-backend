@@ -5,8 +5,12 @@ import (
 	"dia-backend/internal/app/repository"
 	"os"
 
+	_ "dia-backend/docs"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func StartServer() {
@@ -20,6 +24,8 @@ func StartServer() {
 	router := gin.Default()
 
 	handler.RegisterHandlers(router, repo)
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	logrus.Debug("Server started")
 
