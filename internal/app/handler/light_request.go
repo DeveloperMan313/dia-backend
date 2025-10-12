@@ -38,6 +38,11 @@ func (h *RequestHandler) GetCartInfo(ctx *gin.Context) {
 		return
 	}
 
+	if requestID == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Cart not found"})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, CartInfoResponse{
 		RequestID: requestID,
 		ItemCount: itemCount,
