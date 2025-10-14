@@ -136,8 +136,6 @@ func (r *LampRepository) AddLampToDraftRequest(lampID uint64, userID uint64) err
 		lightRequestToLamp := ds.LightRequestToLamp{
 			RequestID: lightRequest.ID,
 			LampID:    lampID,
-			AreaM2:    10.0,
-			Number:    1,
 		}
 
 		return tx.Create(&lightRequestToLamp).Error
