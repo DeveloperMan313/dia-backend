@@ -2,6 +2,7 @@ package handler
 
 import (
 	"dia-backend/internal/app/repository"
+	"dia-backend/internal/app/role"
 	"net/http"
 	"strconv"
 	"time"
@@ -27,6 +28,10 @@ type CartInfoResponse struct {
 
 type UpdateRequestRequest struct {
 	MaxTotalPowerW *float64 `json:"max_total_power_w"`
+}
+
+type FinishRequestRequest struct {
+	Action string `json:"action" binding:"required"`
 }
 
 // GetCartInfo godoc
@@ -67,7 +72,7 @@ func (h *RequestHandler) GetCartInfo(ctx *gin.Context) {
 
 // GetRequests godoc
 // @Summary      List all light requests
-// @Description  Get all light requests with optional filters (moderator only)
+// @Description  Get all light requests with optional filters
 // @Tags         light-requests
 // @Accept       json
 // @Produce      json
@@ -99,7 +104,19 @@ func (h *RequestHandler) GetRequests(ctx *gin.Context) {
 		}
 	}
 
-	requests, err := h.repo.LightRequest.GetLightRequests(statusFilter, dateFrom, dateTo)
+	userID, exists := GetUserIDFromContext(ctx)
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	isMod := false
+	userRole, exists := GetUserRoleFromContext(ctx)
+	if exists && userRole == role.Moderator {
+		isMod = true
+	}
+
+	requests, err := h.repo.LightRequest.GetLightRequests(statusFilter, dateFrom, dateTo, isMod, userID)
 	if err != nil {
 		logrus.Error(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get requests"})
@@ -218,20 +235,21 @@ func (h *RequestHandler) FormRequest(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Request formed successfully"})
 }
 
-// ResolveRequest godoc
-// @Summary      Resolve light request
-// @Description  Approve and resolve a light request with calculations (moderator only)
+// FinishRequest godoc
+// @Summary      Finish light request
+// @Description  Resolve or reject a light request with calculations (moderator only)
 // @Tags         light-requests
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        id   path      int  true  "Light Request ID"
+// @Param        request body FinishRequestRequest true "Action data"
 // @Success      200  {object}  map[string]interface{}
 // @Failure      400  {object}  map[string]string
 // @Failure      401  {object}  map[string]string
 // @Failure      403  {object}  map[string]string
-// @Router       /light-requests/{id}/resolve [put]
-func (h *RequestHandler) ResolveRequest(ctx *gin.Context) {
+// @Router       /light-requests/{id}/finish [put]
+func (h *RequestHandler) FinishRequest(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
@@ -239,78 +257,65 @@ func (h *RequestHandler) ResolveRequest(ctx *gin.Context) {
 		return
 	}
 
-	totalPower := h.repo.LightRequest.CalculateTotalPower(id)
+	var req FinishRequestRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		return
+	}
 
-	deliveryDate := time.Now().AddDate(0, 1, 0)
+	if req.Action != "resolve" && req.Action != "reject" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Action must be 'resolve' or 'reject'"})
+		return
+	}
 
-	calculatedLamps := make(map[uint64]uint64)
+	var status uint8
+	if req.Action == "resolve" {
+		status = 4
+	} else {
+		status = 5
+	}
 
+	moderatorID := uint64(2)
 	userID, exists := GetUserIDFromContext(ctx)
 	if !exists {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	request, err := h.repo.LightRequest.GetLightRequestByID(id, userID)
-	if err == nil {
-		for _, entry := range request.LightRequestToLamp {
-			// N = (E * S) / Phi
-			// E = 500 lux (standard office lighting)
-			// S = area_m2
-			// Phi = luminous_flux_lm
-			requiredIlluminationLux := 500.0
-			calculatedNumber := (requiredIlluminationLux * entry.AreaM2) / entry.Lamp.LuminousFluxLm
-			calculatedLamps[entry.LampID] = uint64(calculatedNumber)
+	if req.Action == "resolve" {
+		request, err := h.repo.LightRequest.GetLightRequestByID(id, userID)
+		if err == nil {
+			for _, entry := range request.LightRequestToLamp {
+				// N = (E * S) / Phi
+				// E = 500 lux (standard office lighting)
+				// S = area_m2
+				// Phi = luminous_flux_lm
+				requiredIlluminationLux := 500.0
+				calculatedNumber := (requiredIlluminationLux * entry.AreaM2) / entry.Lamp.LuminousFluxLm
+				number := uint64(calculatedNumber)
+
+				if err := h.repo.LightRequest.UpdateRequestToLamp(id, entry.LampID, userID, nil, &number); err != nil {
+					logrus.Errorf("Failed to update lamp number for lamp %d: %v", entry.LampID, err)
+				}
+			}
 		}
-	}
 
-	moderatorID := uint64(2)
-	if err := h.repo.LightRequest.ResolveOrRejectRequest(id, moderatorID, 4); err != nil {
-		logrus.Error(err)
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+		if err := h.repo.LightRequest.ResolveOrRejectRequest(id, moderatorID, status); err != nil {
+			logrus.Error(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-	response := gin.H{
-		"message": "Request resolved successfully",
-		"calculated_data": gin.H{
-			"total_power_w":    totalPower,
-			"delivery_date":    deliveryDate.Format("2006-01-02"),
-			"calculated_lamps": calculatedLamps,
-		},
-	}
-	ctx.JSON(http.StatusOK, response)
-}
+		ctx.JSON(http.StatusOK, gin.H{"message": "Request resolved successfully"})
+	} else {
+		if err := h.repo.LightRequest.ResolveOrRejectRequest(id, moderatorID, status); err != nil {
+			logrus.Error(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-// RejectRequest godoc
-// @Summary      Reject light request
-// @Description  Reject a light request (moderator only)
-// @Tags         light-requests
-// @Accept       json
-// @Produce      json
-// @Security     BearerAuth
-// @Param        id   path      int  true  "Light Request ID"
-// @Success      200  {object}  map[string]string
-// @Failure      400  {object}  map[string]string
-// @Failure      401  {object}  map[string]string
-// @Failure      403  {object}  map[string]string
-// @Router       /light-requests/{id}/reject [put]
-func (h *RequestHandler) RejectRequest(ctx *gin.Context) {
-	idStr := ctx.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request ID"})
-		return
+		ctx.JSON(http.StatusOK, gin.H{"message": "Request rejected successfully"})
 	}
-
-	moderatorID := uint64(2)
-	if err := h.repo.LightRequest.ResolveOrRejectRequest(id, moderatorID, 5); err != nil {
-		logrus.Error(err)
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"message": "Request rejected successfully"})
 }
 
 // DeleteRequest godoc

@@ -43,7 +43,7 @@ func (r *LightRequestRepository) GetDraftRequestInfo(userID uint64) (uint64, int
 	return lightRequest.ID, int(count), nil
 }
 
-func (r *LightRequestRepository) GetLightRequests(statusFilter uint8, dateFrom, dateTo *time.Time) ([]ds.LightRequest, error) {
+func (r *LightRequestRepository) GetLightRequests(statusFilter uint8, dateFrom, dateTo *time.Time, isMod bool, userID uint64) ([]ds.LightRequest, error) {
 	var lightRequests []ds.LightRequest
 
 	query := r.db.
@@ -54,6 +54,10 @@ func (r *LightRequestRepository) GetLightRequests(statusFilter uint8, dateFrom, 
 			return db.Select("id, username")
 		}).
 		Where("status != 1 AND status != 2")
+
+	if !isMod {
+		query = query.Where("user_id = ?", userID)
+	}
 
 	if statusFilter != 0 {
 		query = query.Where("status = ?", statusFilter)

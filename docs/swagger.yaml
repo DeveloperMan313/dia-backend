@@ -44,8 +44,6 @@ definitions:
     type: object
   ds.User:
     properties:
-      id:
-        type: integer
       role:
         $ref: '#/definitions/role.Role'
       username:
@@ -73,6 +71,13 @@ definitions:
     - power_w
     - scattering_angle_deg
     - title
+    type: object
+  handler.FinishRequestRequest:
+    properties:
+      action:
+        type: string
+    required:
+    - action
     type: object
   handler.LoginRequest:
     properties:
@@ -166,12 +171,6 @@ definitions:
     - 0
     - 1
     type: integer
-    x-enum-comments:
-      Moderator: "1"
-      User: "0"
-    x-enum-descriptions:
-    - "0"
-    - "1"
     x-enum-varnames:
     - User
     - Moderator
@@ -562,7 +561,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get all light requests with optional filters (moderator only)
+      description: Get all light requests with optional filters
       parameters:
       - description: Filter by status
         in: query
@@ -733,6 +732,55 @@ paths:
       summary: Update light request
       tags:
       - light-requests
+  /light-requests/{id}/finish:
+    put:
+      consumes:
+      - application/json
+      description: Resolve or reject a light request with calculations (moderator
+        only)
+      parameters:
+      - description: Light Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Action data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.FinishRequestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Finish light request
+      tags:
+      - light-requests
   /light-requests/{id}/form:
     put:
       consumes:
@@ -768,92 +816,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Form light request
-      tags:
-      - light-requests
-  /light-requests/{id}/reject:
-    put:
-      consumes:
-      - application/json
-      description: Reject a light request (moderator only)
-      parameters:
-      - description: Light Request ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Reject light request
-      tags:
-      - light-requests
-  /light-requests/{id}/resolve:
-    put:
-      consumes:
-      - application/json
-      description: Approve and resolve a light request with calculations (moderator
-        only)
-      parameters:
-      - description: Light Request ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "403":
-          description: Forbidden
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Resolve light request
       tags:
       - light-requests
   /light-requests/cart:
