@@ -187,6 +187,6 @@ deploy/.env.example
 cd deploy
 docker compose up -d
 cd ..
-go run cmd/migrate/
-go run cmd/dia-backend/
+go run ./cmd/migrate/
+go run ./cmd/dia-backend/
 ```
