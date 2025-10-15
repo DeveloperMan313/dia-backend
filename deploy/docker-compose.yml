@@ -87,7 +87,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    restart: always
     ports:
       - "${REDIS_PORT}:6379"
     command: redis-server --save 20 1 --loglevel warning ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
