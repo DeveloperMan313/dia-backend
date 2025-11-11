@@ -83,6 +83,57 @@ func (h *BaseHandler) WithAuthCheck(assignedRoles ...role.Role) gin.HandlerFunc 
 	}
 }
 
+// continues instead of aborting with 403, devious hack for request bin
+func (h *BaseHandler) WithAuthGet() gin.HandlerFunc {
+	return func(gCtx *gin.Context) {
+		jwtStr := gCtx.GetHeader("Authorization")
+		if !strings.HasPrefix(jwtStr, jwtPrefix) {
+			gCtx.Next()
+			return
+		}
+
+		jwtStr = jwtStr[len(jwtPrefix):]
+
+		if h.repo.Redis != nil {
+			err := h.repo.Redis.CheckJWTInBlacklist(gCtx.Request.Context(), jwtStr)
+			if err == nil {
+				gCtx.Next()
+				return
+			}
+			if !errors.Is(err, redis.Nil) {
+				logrus.Error("Redis error:", err)
+				gCtx.AbortWithStatus(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		token, err := jwt.ParseWithClaims(jwtStr, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+			return []byte(h.repo.Config.JWT.Token), nil
+		})
+		if err != nil {
+			logrus.Error("JWT parse error:", err)
+			gCtx.Next()
+			return
+		}
+
+		if !token.Valid {
+			gCtx.Next()
+			return
+		}
+
+		myClaims, ok := token.Claims.(*ds.JWTClaims)
+		if !ok {
+			gCtx.Next()
+			return
+		}
+
+		gCtx.Set("user_id", myClaims.UserID)
+		gCtx.Set("user_role", myClaims.Role)
+
+		gCtx.Next()
+	}
+}
+
 func GetUserIDFromContext(gCtx *gin.Context) (uint64, bool) {
 	userID, exists := gCtx.Get("user_id")
 	if !exists {

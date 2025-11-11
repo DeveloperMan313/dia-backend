@@ -39,7 +39,7 @@ func RegisterHandlers(router *gin.Engine, repo *repository.Repository) {
 	requestHandler := NewRequestHandler(repo)
 	requestRouter := apiRouter.Group("/light-requests")
 	{
-		requestRouter.GET("/cart", baseHandler.WithAuthCheck(role.User, role.Moderator), requestHandler.GetCartInfo)
+		requestRouter.GET("/cart", baseHandler.WithAuthGet(), requestHandler.GetCartInfo)
 		requestRouter.GET("/:id", baseHandler.WithAuthCheck(role.User, role.Moderator), requestHandler.GetRequestByID)
 		requestRouter.PUT("/:id", baseHandler.WithAuthCheck(role.User, role.Moderator), requestHandler.UpdateRequest)
 		requestRouter.PUT("/:id/form", baseHandler.WithAuthCheck(role.User, role.Moderator), requestHandler.FormRequest)

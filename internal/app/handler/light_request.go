@@ -36,19 +36,22 @@ type FinishRequestRequest struct {
 
 // GetCartInfo godoc
 // @Summary      Get cart information
-// @Description  Get draft request ID and item count for current user
+// @Description  Get draft request ID and item count for current user. For unauthorized/not found returns null values
 // @Tags         light-requests
 // @Accept       json
 // @Produce      json
-// @Security     BearerAuth
-// @Success      200  {object}  CartInfoResponse
-// @Failure      401  {object}  map[string]string
+// @Success      200  {object}  CartInfoResponse  "Success. For unauthorized/empty cart: {\\"request_id\\": 0, \\"item_count\\": -1}"
 // @Failure      500  {object}  map[string]string
 // @Router       /light-requests/cart [get]
 func (h *RequestHandler) GetCartInfo(ctx *gin.Context) {
+	nullResponse := CartInfoResponse{
+		RequestID: 0,
+		ItemCount: -1,
+	}
+
 	userID, exists := GetUserIDFromContext(ctx)
 	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		ctx.JSON(http.StatusOK, nullResponse)
 		return
 	}
 
@@ -60,7 +63,7 @@ func (h *RequestHandler) GetCartInfo(ctx *gin.Context) {
 	}
 
 	if requestID == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Cart not found"})
+		ctx.JSON(http.StatusOK, nullResponse)
 		return
 	}
 

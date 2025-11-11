@@ -822,28 +822,22 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get draft request ID and item count for current user
+      description: Get draft request ID and item count for current user. For unauthorized/not
+        found returns null values
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: 'Success. For unauthorized/empty cart: {\\"request_id\\": 0,
+            \\"item_count\\": -1}'
           schema:
             $ref: '#/definitions/handler.CartInfoResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
           description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
-      security:
-      - BearerAuth: []
       summary: Get cart information
       tags:
       - light-requests

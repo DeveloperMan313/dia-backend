@@ -661,12 +661,7 @@
         },
         "/light-requests/cart": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get draft request ID and item count for current user",
+                "description": "Get draft request ID and item count for current user. For unauthorized/not found returns null values",
                 "consumes": [
                     "application/json"
                 ],
@@ -679,18 +674,9 @@
                 "summary": "Get cart information",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Success. For unauthorized/empty cart: {\\\\\"request_id\\\\\": 0, \\\\\"item_count\\\\\": -1}",
                         "schema": {
                             "$ref": "#/definitions/handler.CartInfoResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
                         }
                     },
                     "500": {
