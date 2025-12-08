@@ -44,7 +44,8 @@ swag init -g cmd/dia-backend/main.go -o docs
 - `GET /api/light-requests/:id` - получение заявки с лампами по ID
 - `PUT /api/light-requests/:id` - обновление полей заявки
 - `PUT /api/light-requests/:id/form` - формирование заявки создателем
-- `PUT /api/light-requests/:id/finish` - разрешение/отклонение заявки модератором
+- `PUT /api/light-requests/:id/resolve` - разрешение заявки модератором
+- `PUT /api/light-requests/:id/reject` - отклонение заявки модератором
 - `DELETE /api/light-requests/:id` - удаление заявки
 
 ### Домен связь заявка-лампа (LightRequest-Lamp)

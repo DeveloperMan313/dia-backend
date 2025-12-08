@@ -46,7 +46,8 @@ func RegisterHandlers(router *gin.Engine, repo *repository.Repository) {
 		requestRouter.DELETE("/:id", baseHandler.WithAuthCheck(role.User, role.Moderator), requestHandler.DeleteRequest)
 		requestRouter.GET("", baseHandler.WithAuthCheck(role.User, role.Moderator), requestHandler.GetRequests)
 
-		requestRouter.PUT("/:id/finish", baseHandler.WithAuthCheck(role.Moderator), requestHandler.FinishRequest)
+		requestRouter.PUT("/:id/resolve", baseHandler.WithAuthCheck(role.Moderator), requestHandler.ResolveRequest)
+		requestRouter.PUT("/:id/reject", baseHandler.WithAuthCheck(role.Moderator), requestHandler.RejectRequest)
 	}
 
 	requestLampHandler := NewRequestLampHandler(repo)
