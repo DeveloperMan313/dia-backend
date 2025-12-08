@@ -8,7 +8,7 @@ import (
 )
 
 func RegisterHandlers(router *gin.Engine, repo *repository.Repository) {
-	apiRouter := router.Group("/api")
+	apiRouter := router.Group("/api", SetCorsHeaders)
 
 	baseHandler := NewBaseHandler(repo)
 

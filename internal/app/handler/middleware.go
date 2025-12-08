@@ -151,3 +151,7 @@ func GetUserRoleFromContext(gCtx *gin.Context) (role.Role, bool) {
 	r, ok := userRole.(role.Role)
 	return r, ok
 }
+
+func SetCorsHeaders(gCtx *gin.Context) {
+	gCtx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+}
