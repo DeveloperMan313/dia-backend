@@ -62,6 +62,8 @@ func (r *LightRequestRepository) GetLightRequests(statusFilter uint8, dateFrom, 
 	var lightRequests []ds.LightRequest
 
 	query := r.db.
+		Preload("LightRequestToLamp").
+		Preload("LightRequestToLamp.Lamp").
 		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, username")
 		}).
