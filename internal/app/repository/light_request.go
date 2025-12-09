@@ -43,6 +43,21 @@ func (r *LightRequestRepository) GetDraftRequestInfo(userID uint64) (uint64, int
 	return lightRequest.ID, int(count), nil
 }
 
+func (r *LightRequestRepository) lightRequestSetCalculatedCnt(lightRequest *ds.LightRequest) error {
+	var count int64
+	var err error
+
+	err = r.db.Model(&ds.LightRequestToLamp{}).
+		Where("request_id = ? AND number IS NOT NULL", lightRequest.ID).
+		Count(&count).Error
+	if err != nil {
+		return err
+	}
+	lightRequest.CalculatedCnt = uint64(count)
+
+	return nil
+}
+
 func (r *LightRequestRepository) GetLightRequests(statusFilter uint8, dateFrom, dateTo *time.Time, isMod bool, userID uint64) ([]ds.LightRequest, error) {
 	var lightRequests []ds.LightRequest
 
@@ -75,6 +90,13 @@ func (r *LightRequestRepository) GetLightRequests(statusFilter uint8, dateFrom, 
 		return nil, err
 	}
 
+	for i := range lightRequests {
+		err = r.lightRequestSetCalculatedCnt(&lightRequests[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return lightRequests, nil
 }
 
@@ -86,6 +108,11 @@ func (r *LightRequestRepository) GetLightRequestByID(id uint64, userID uint64) (
 		Where("status != 2 AND user_id = ?", userID).
 		First(&lightRequest, id).Error
 
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.lightRequestSetCalculatedCnt(&lightRequest)
 	if err != nil {
 		return nil, err
 	}

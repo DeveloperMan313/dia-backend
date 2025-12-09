@@ -14,4 +14,5 @@ type LightRequest struct {
 	CreatedAt          time.Time            `gorm:"not null;default:now()" json:"created_at"`
 	FormedAt           time.Time            `gorm:"default:null" json:"formed_at"`
 	ClosedAt           time.Time            `gorm:"default:null" json:"closed_at"`
+	CalculatedCnt      uint64               `json:"calculated_cnt"`
 }

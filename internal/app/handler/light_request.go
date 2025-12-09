@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"bytes"
 	"dia-backend/internal/app/repository"
 	"dia-backend/internal/app/role"
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
@@ -263,26 +265,44 @@ func (h *RequestHandler) ResolveRequest(ctx *gin.Context) {
 		return
 	}
 
-	totalPower := h.repo.LightRequest.CalculateTotalPower(id)
-
 	moderatorID, exists := GetUserIDFromContext(ctx)
 	if !exists {
 		panic("user not in context after passing auth check, something's wrong")
 	}
 
-	calculatedLamps := make(map[uint64]uint64)
 	request, err := h.repo.LightRequest.GetLightRequestByID(id, moderatorID)
+	if err != nil {
+		logrus.Error(err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get request data"})
+		return
+	}
 
-	if err == nil {
-		for _, entry := range request.LightRequestToLamp {
-			// N = (E * S) / Phi
-			// E = 500 lux (standard office lighting)
-			// S = area_m2
-			// Phi = luminous_flux_lm
-			requiredIlluminationLux := 500.0
-			calculatedNumber := (requiredIlluminationLux * entry.AreaM2) / entry.Lamp.LuminousFluxLm
-			calculatedLamps[entry.LampID] = uint64(calculatedNumber)
-		}
+	requestJSON, err := json.Marshal(request)
+	if err != nil {
+		logrus.Error(err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to serialize request"})
+		return
+	}
+
+	calcServiceURL := h.repo.Config.CalcService.URL
+	if calcServiceURL == "" {
+		logrus.Error("CalcService URL is not configured")
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Calculation service not configured"})
+		return
+	}
+
+	resp, err := http.Post(calcServiceURL, "application/json", bytes.NewBuffer(requestJSON))
+	if err != nil {
+		logrus.Error(err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to call calculation service"})
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		logrus.Errorf("Calculation service returned status: %d", resp.StatusCode)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Calculation service failed"})
+		return
 	}
 
 	if err := h.repo.LightRequest.ResolveOrRejectRequest(id, moderatorID, 4); err != nil {
@@ -291,14 +311,7 @@ func (h *RequestHandler) ResolveRequest(ctx *gin.Context) {
 		return
 	}
 
-	response := gin.H{
-		"message": "Request resolved successfully",
-		"calculated_data": gin.H{
-			"total_power_w":    totalPower,
-			"calculated_lamps": calculatedLamps,
-		},
-	}
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, gin.H{"message": "Request resolved successfully"})
 }
 
 // RejectRequest godoc
