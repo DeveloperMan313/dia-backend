@@ -7,7 +7,7 @@ import (
 )
 
 func RegisterHandlers(router *gin.Engine, repo *repository.Repository) {
-	apiRouter := router.Group("/api")
+	apiRouter := router.Group("/api", SetCorsHeaders)
 
 	lampHandler := NewLampHandler(repo)
 	lampRouter := apiRouter.Group("/lamps")
