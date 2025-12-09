@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	JWT   JWTConfig
-	Redis RedisConfig
+	JWT         JWTConfig
+	Redis       RedisConfig
+	CalcService CalcServiceConfig
 }
 
 type JWTConfig struct {
@@ -25,6 +26,11 @@ type RedisConfig struct {
 	User        string
 	DialTimeout time.Duration
 	ReadTimeout time.Duration
+}
+
+type CalcServiceConfig struct {
+	URL string
+	Key string
 }
 
 func LoadConfig() *Config {
@@ -48,6 +54,10 @@ func LoadConfig() *Config {
 			Password:    getEnv("REDIS_PASSWORD", ""),
 			DialTimeout: 5 * time.Second,
 			ReadTimeout: 3 * time.Second,
+		},
+		CalcService: CalcServiceConfig{
+			URL: getEnv("ASYNC_CALC_LAMP_NUMBERS_URL", ""),
+			Key: getEnv("ASYNC_CALC_KEY", ""),
 		},
 	}
 }

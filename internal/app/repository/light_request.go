@@ -249,6 +249,45 @@ func (r *LightRequestRepository) CalculateTotalPower(requestID uint64) float64 {
 	return result.TotalPower
 }
 
+type AsyncUpdateLampRequest struct {
+	LampID uint64 `json:"lamp_id"`
+	Number uint64 `json:"number"`
+}
+
+func (r *LightRequestRepository) AsyncUpdateRequestLampNumbers(requestID uint64, lamps []AsyncUpdateLampRequest) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var lightRequest ds.LightRequest
+		err := tx.
+			Where("id = ? AND status = 3", requestID).
+			First(&lightRequest).Error
+
+		if err != nil {
+			return err
+		}
+
+		for _, lamp := range lamps {
+			updates := map[string]interface{}{
+				"number": lamp.Number,
+			}
+
+			result := tx.
+				Model(&ds.LightRequestToLamp{}).
+				Where("request_id = ? AND lamp_id = ?", requestID, lamp.LampID).
+				Updates(updates)
+
+			if result.Error != nil {
+				return result.Error
+			}
+
+			if result.RowsAffected == 0 {
+				return gorm.ErrRecordNotFound
+			}
+		}
+
+		return nil
+	})
+}
+
 func (r *LightRequestRepository) AddLampToLightRequest(lampID uint64, userID uint64) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		var lamp ds.Lamp

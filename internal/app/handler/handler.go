@@ -48,6 +48,8 @@ func RegisterHandlers(router *gin.Engine, repo *repository.Repository) {
 
 		requestRouter.PUT("/:id/resolve", baseHandler.WithAuthCheck(role.Moderator), requestHandler.ResolveRequest)
 		requestRouter.PUT("/:id/reject", baseHandler.WithAuthCheck(role.Moderator), requestHandler.RejectRequest)
+
+		requestRouter.PUT("/:id/async-update", requestHandler.AsyncUpdateRequestLamp)
 	}
 
 	requestLampHandler := NewRequestLampHandler(repo)

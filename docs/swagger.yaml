@@ -53,6 +53,26 @@ definitions:
       username:
         type: string
     type: object
+  handler.AsyncUpdateRequestLampsRequest:
+    properties:
+      key:
+        type: string
+      light_request_to_lamp:
+        items:
+          properties:
+            lamp_id:
+              type: integer
+            number:
+              type: integer
+          required:
+          - lamp_id
+          - number
+          type: object
+        type: array
+    required:
+    - key
+    - light_request_to_lamp
+    type: object
   handler.CartInfoResponse:
     properties:
       item_count:
@@ -727,6 +747,54 @@ paths:
       security:
       - BearerAuth: []
       summary: Update light request
+      tags:
+      - light-requests
+  /light-requests/{id}/async-update:
+    put:
+      consumes:
+      - application/json
+      description: Update multiple lamps in a draft light request asynchronously using
+        secret key
+      parameters:
+      - description: Light Request ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update lamps data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.AsyncUpdateRequestLampsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Asynchronously update lamps in request
       tags:
       - light-requests
   /light-requests/{id}/form:

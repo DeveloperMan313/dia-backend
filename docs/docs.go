@@ -900,6 +900,77 @@ const docTemplate = `{
                 }
             }
         },
+        "/light-requests/{id}/async-update": {
+            "put": {
+                "description": "Update multiple lamps in a draft light request asynchronously using secret key",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "light-requests"
+                ],
+                "summary": "Asynchronously update lamps in request",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Light Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update lamps data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.AsyncUpdateRequestLampsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/light-requests/{id}/form": {
             "put": {
                 "security": [
@@ -1407,6 +1478,36 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "handler.AsyncUpdateRequestLampsRequest": {
+            "type": "object",
+            "required": [
+                "key",
+                "light_request_to_lamp"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "light_request_to_lamp": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "lamp_id",
+                            "number"
+                        ],
+                        "properties": {
+                            "lamp_id": {
+                                "type": "integer"
+                            },
+                            "number": {
+                                "type": "integer"
+                            }
+                        }
+                    }
                 }
             }
         },

@@ -30,6 +30,14 @@ type UpdateRequestRequest struct {
 	MaxTotalPowerW *float64 `json:"max_total_power_w"`
 }
 
+type AsyncUpdateRequestLampsRequest struct {
+	Key                string `json:"key" binding:"required"`
+	LightRequestToLamp []struct {
+		LampID uint64 `json:"lamp_id" binding:"required"`
+		Number uint64 `json:"number" binding:"required"`
+	} `json:"light_request_to_lamp" binding:"required"`
+}
+
 // GetCartInfo godoc
 // @Summary      Get cart information
 // @Description  Get draft request ID and item count for current user. For unauthorized/not found returns null values
@@ -361,4 +369,54 @@ func (h *RequestHandler) DeleteRequest(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Request deleted successfully"})
+}
+
+// AsyncUpdateRequestLamp godoc
+// @Summary      Asynchronously update lamps in request
+// @Description  Update multiple lamps in a draft light request asynchronously using secret key
+// @Tags         light-requests
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Light Request ID"
+// @Param        request body AsyncUpdateRequestLampsRequest true "Update lamps data"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /light-requests/{id}/async-update [put]
+func (h *RequestHandler) AsyncUpdateRequestLamp(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request ID"})
+		return
+	}
+
+	var req AsyncUpdateRequestLampsRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		return
+	}
+
+	if req.Key != h.repo.Config.CalcService.Key {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	lamps := make([]repository.AsyncUpdateLampRequest, len(req.LightRequestToLamp))
+
+	for i, lamp := range req.LightRequestToLamp {
+		lamps[i] = repository.AsyncUpdateLampRequest{
+			LampID: lamp.LampID,
+			Number: lamp.Number,
+		}
+	}
+
+	if err := h.repo.LightRequest.AsyncUpdateRequestLampNumbers(id, lamps); err != nil {
+		logrus.Error(err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update request lamps"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Request lamps updated successfully"})
 }
