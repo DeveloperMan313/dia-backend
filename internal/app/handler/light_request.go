@@ -291,6 +291,12 @@ func (h *RequestHandler) ResolveRequest(ctx *gin.Context) {
 		return
 	}
 
+	if err := h.repo.LightRequest.ResolveOrRejectRequest(id, moderatorID, 4); err != nil {
+		logrus.Error(err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	resp, err := http.Post(calcServiceURL, "application/json", bytes.NewBuffer(requestJSON))
 	if err != nil {
 		logrus.Error(err)
@@ -302,12 +308,6 @@ func (h *RequestHandler) ResolveRequest(ctx *gin.Context) {
 	if resp.StatusCode != http.StatusOK {
 		logrus.Errorf("Calculation service returned status: %d", resp.StatusCode)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Calculation service failed"})
-		return
-	}
-
-	if err := h.repo.LightRequest.ResolveOrRejectRequest(id, moderatorID, 4); err != nil {
-		logrus.Error(err)
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 

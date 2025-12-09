@@ -287,7 +287,7 @@ func (r *LightRequestRepository) AsyncUpdateRequestLampNumbers(requestID uint64,
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		var lightRequest ds.LightRequest
 		err := tx.
-			Where("id = ? AND status = 3", requestID).
+			Where("id = ? AND status = 4", requestID).
 			First(&lightRequest).Error
 
 		if err != nil {
