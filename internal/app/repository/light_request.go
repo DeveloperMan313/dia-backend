@@ -102,13 +102,18 @@ func (r *LightRequestRepository) GetLightRequests(statusFilter uint8, dateFrom, 
 	return lightRequests, nil
 }
 
-func (r *LightRequestRepository) GetLightRequestByID(id uint64, userID uint64) (*ds.LightRequest, error) {
-	var lightRequest ds.LightRequest
-	err := r.db.
+func (r *LightRequestRepository) GetLightRequestByID(id uint64, isMod bool, userID uint64) (*ds.LightRequest, error) {
+	query := r.db.
 		Preload("LightRequestToLamp").
 		Preload("LightRequestToLamp.Lamp").
-		Where("status != 2 AND user_id = ?", userID).
-		First(&lightRequest, id).Error
+		Where("status != 2")
+
+	if !isMod {
+		query = query.Where("user_id = ?", userID)
+	}
+
+	var lightRequest ds.LightRequest
+	err := query.First(&lightRequest, id).Error
 
 	if err != nil {
 		return nil, err

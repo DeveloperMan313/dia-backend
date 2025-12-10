@@ -113,15 +113,11 @@ func (h *RequestHandler) GetRequests(ctx *gin.Context) {
 		}
 	}
 
-	userID, exists := GetUserIDFromContext(ctx)
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
+	userID, _ := GetUserIDFromContext(ctx)
 
 	isMod := false
-	userRole, exists := GetUserRoleFromContext(ctx)
-	if exists && userRole == role.Moderator {
+	userRole, _ := GetUserRoleFromContext(ctx)
+	if userRole == role.Moderator {
 		isMod = true
 	}
 
@@ -156,13 +152,14 @@ func (h *RequestHandler) GetRequestByID(ctx *gin.Context) {
 		return
 	}
 
-	userID, exists := GetUserIDFromContext(ctx)
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
+	isMod := false
+	userID, _ := GetUserIDFromContext(ctx)
+	userRole, _ := GetUserRoleFromContext(ctx)
+	if userRole == role.Moderator {
+		isMod = true
 	}
 
-	request, err := h.repo.LightRequest.GetLightRequestByID(id, userID)
+	request, err := h.repo.LightRequest.GetLightRequestByID(id, isMod, userID)
 	if err != nil {
 		logrus.Error(err)
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Request not found"})
@@ -229,11 +226,7 @@ func (h *RequestHandler) FormRequest(ctx *gin.Context) {
 		return
 	}
 
-	userID, exists := GetUserIDFromContext(ctx)
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
+	userID, _ := GetUserIDFromContext(ctx)
 
 	if err := h.repo.LightRequest.FormRequest(id, userID); err != nil {
 		logrus.Error(err)
@@ -265,12 +258,9 @@ func (h *RequestHandler) ResolveRequest(ctx *gin.Context) {
 		return
 	}
 
-	moderatorID, exists := GetUserIDFromContext(ctx)
-	if !exists {
-		panic("user not in context after passing auth check, something's wrong")
-	}
+	moderatorID, _ := GetUserIDFromContext(ctx)
 
-	request, err := h.repo.LightRequest.GetLightRequestByID(id, moderatorID)
+	request, err := h.repo.LightRequest.GetLightRequestByID(id, true, moderatorID)
 	if err != nil {
 		logrus.Error(err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get request data"})
@@ -334,10 +324,7 @@ func (h *RequestHandler) RejectRequest(ctx *gin.Context) {
 		return
 	}
 
-	moderatorID, exists := GetUserIDFromContext(ctx)
-	if !exists {
-		panic("user not in context after passing auth check, something's wrong")
-	}
+	moderatorID, _ := GetUserIDFromContext(ctx)
 
 	if err := h.repo.LightRequest.ResolveOrRejectRequest(id, moderatorID, 5); err != nil {
 		logrus.Error(err)
@@ -369,11 +356,7 @@ func (h *RequestHandler) DeleteRequest(ctx *gin.Context) {
 		return
 	}
 
-	moderatorID, exists := GetUserIDFromContext(ctx)
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
+	moderatorID, _ := GetUserIDFromContext(ctx)
 
 	if err := h.repo.LightRequest.DeleteRequest(id, moderatorID); err != nil {
 		logrus.Error(err)
